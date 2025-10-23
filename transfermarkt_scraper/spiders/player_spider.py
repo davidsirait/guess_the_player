@@ -2,6 +2,12 @@ import scrapy
 import re
 from transfermarkt_scraper.items import PlayerItem
 
+def sanitize_string(input_string):
+    """Sanitize strings by replacing hyphens with spaces and title-casing"""
+    if input_string:
+        return input_string.replace('-', ' ').title()
+    return input_string
+    
 
 class PlayerSpider(scrapy.Spider):
     name = 'player_spider'
@@ -86,7 +92,7 @@ class PlayerSpider(scrapy.Spider):
                     'club': club_name
                 }
             )
-    
+
     def parse_club(self, response):
         """Parse club page to extract player links and IDs"""
         league = response.meta['league']
@@ -114,9 +120,9 @@ class PlayerSpider(scrapy.Spider):
                 
                 yield PlayerItem(
                     player_id=player_id,
-                    player_name=player_name,
+                    player_name=sanitize_string(player_name),
                     player_url=player_url,
                     league=league,
                     division=division,
-                    club=club
+                    club=sanitize_string(club)
                 )

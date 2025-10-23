@@ -30,7 +30,8 @@ RETRY_HTTP_CODES = [500, 502, 503, 504, 408, 429]
 
 # Configure item pipelines
 ITEM_PIPELINES = {
-    'transfermarkt_scraper.pipelines.JsonWriterPipeline': 300,
+    'transfermarkt_scraper.json_pipeline.JsonWriterPipeline': 300,
+    'transfermarkt_scraper.db_pipeline.DuckDBPipeline': 400,
 }
 
 # Set log level
@@ -50,3 +51,6 @@ DEFAULT_REQUEST_HEADERS = {
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
     'Accept-Language': 'en-GB,en;q=0.9',
 }
+
+# DuckDB database path
+DUCKDB_DATABASE = 'transfermarkt.db'

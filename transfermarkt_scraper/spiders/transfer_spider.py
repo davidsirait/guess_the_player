@@ -16,18 +16,29 @@ class TransferSpider(scrapy.Spider):
     def __init__(self, *args, **kwargs):
         super(TransferSpider, self).__init__(*args, **kwargs)
         self.player_file = kwargs.get('player_file', 'output/players.json')
+        self.db = kwargs.get('db', None)
     
     def start_requests(self):
         """Read player IDs from the player spider output and generate API requests (deprecated, kept for backward compatibility)"""
         try:
-            with open(self.player_file, 'r', encoding='utf-8') as f:
-                players = json.load(f)
-            
+            if self.db:
+                import duckdb
+                conn = duckdb.connect(self.db)
+                players = conn.execute("SELECT player_id, player_name FROM players").fetchall()
+                conn.close()
+            else:
+                with open(self.player_file, 'r', encoding='utf-8') as f:
+                    players = json.load(f)
+                
             self.logger.info(f'Loaded {len(players)} players from {self.player_file}')
             
             for player in players:
-                player_id = player.get('player_id')
-                player_name = player.get('player_name', 'Unknown')
+                if isinstance(player, tuple):
+                    player_id = player[0]
+                    player_name = player[1] if len(player) > 1 else 'Unknown'
+                else:
+                    player_id = player.get('player_id')
+                    player_name = player.get('player_name', 'Unknown')
                 
                 if player_id:
                     # Construct the API URL

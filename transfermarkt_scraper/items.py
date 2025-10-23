@@ -16,3 +16,9 @@ class TransferItem(scrapy.Item):
     player_id = scrapy.Field()
     player_name = scrapy.Field()
     transfers = scrapy.Field()  # List of transfer records
+
+# class TransferDetail(scrapy.Item):
+#     """Item for storing player transfer history"""
+#     player_id = scrapy.Field()
+#     player_name = scrapy.Field()
+#     transfers = scrapy.Field()  # List of transfer records
