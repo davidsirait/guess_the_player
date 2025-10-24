@@ -22,27 +22,27 @@ class PlayerSpider(scrapy.Spider):
         # ('England', 'League One', 'https://www.transfermarkt.co.uk/league-one/startseite/wettbewerb/GB3'),
         
         # # Spain
-        # ('Spain', 'La Liga', 'https://www.transfermarkt.co.uk/laliga/startseite/wettbewerb/ES1'),
+        ('Spain', 'La Liga', 'https://www.transfermarkt.co.uk/laliga/startseite/wettbewerb/ES1'),
         # ('Spain', 'Segunda Division', 'https://www.transfermarkt.co.uk/segunda-division/startseite/wettbewerb/ES2'),
         # ('Spain', 'Primera RFEF', 'https://www.transfermarkt.co.uk/primera-federacion/startseite/wettbewerb/ES3A'),
         
         # # Germany
-        # ('Germany', 'Bundesliga', 'https://www.transfermarkt.co.uk/bundesliga/startseite/wettbewerb/L1'),
+        ('Germany', 'Bundesliga', 'https://www.transfermarkt.co.uk/bundesliga/startseite/wettbewerb/L1'),
         # ('Germany', '2. Bundesliga', 'https://www.transfermarkt.co.uk/2-bundesliga/startseite/wettbewerb/L2'),
         # ('Germany', '3. Liga', 'https://www.transfermarkt.co.uk/3-liga/startseite/wettbewerb/L3'),
         
         # # Italy
-        # ('Italy', 'Serie A', 'https://www.transfermarkt.co.uk/serie-a/startseite/wettbewerb/IT1'),
+        ('Italy', 'Serie A', 'https://www.transfermarkt.co.uk/serie-a/startseite/wettbewerb/IT1'),
         # ('Italy', 'Serie B', 'https://www.transfermarkt.co.uk/serie-b/startseite/wettbewerb/IT2'),
         # ('Italy', 'Serie C', 'https://www.transfermarkt.co.uk/serie-c/startseite/wettbewerb/IT3A'),
         
         # # France
-        # ('France', 'Ligue 1', 'https://www.transfermarkt.co.uk/ligue-1/startseite/wettbewerb/FR1'),
+        ('France', 'Ligue 1', 'https://www.transfermarkt.co.uk/ligue-1/startseite/wettbewerb/FR1'),
         # ('France', 'Ligue 2', 'https://www.transfermarkt.co.uk/ligue-2/startseite/wettbewerb/FR2'),
         # ('France', 'National', 'https://www.transfermarkt.co.uk/national/startseite/wettbewerb/FR3A'),
         
         # # Portugal
-        # ('Portugal', 'Primeira Liga', 'https://www.transfermarkt.co.uk/primeira-liga/startseite/wettbewerb/PO1'),
+        ('Portugal', 'Primeira Liga', 'https://www.transfermarkt.co.uk/primeira-liga/startseite/wettbewerb/PO1'),
         # ('Portugal', 'Segunda Liga', 'https://www.transfermarkt.co.uk/liga-portugal-2/startseite/wettbewerb/PO2'),
         # ('Portugal', 'Liga 3', 'https://www.transfermarkt.co.uk/liga-3/startseite/wettbewerb/PO3'),
     ]
