@@ -58,15 +58,20 @@ class DuckDBPipeline:
         """)
         
         # Optional: Normalized transfers table for easier querying
+        # firt create a sequence for auto-incrementing IDs
+        self.conn.execute("""
+            CREATE SEQUENCE IF NOT EXISTS transfer_details_seq START 1
+        """)
+
         self.conn.execute("""
             CREATE TABLE IF NOT EXISTS transfer_details (
                 id INTEGER PRIMARY KEY,
                 player_id VARCHAR,
                 season VARCHAR,
-                date VARCHAR,
+                fee VARCHAR,
                 from_club VARCHAR,
                 to_club VARCHAR,
-                fee VARCHAR,
+                transfer_date VARCHAR,
                 from_club_image_url VARCHAR,
                 to_club_image_url VARCHAR,
                 FOREIGN KEY (player_id) REFERENCES players(player_id)
@@ -117,11 +122,10 @@ class DuckDBPipeline:
         ])
         
         # Optional: Also store normalized transfer details for easier querying
-        if isinstance(transfers_data, dict) and 'transfers' in transfers_data:
-            self._store_transfer_details(player_id, transfers_data['transfers'])
-            print(transfers_data['transfers'])
-        # if isinstance(transfers_data, list):
-        #     self._store_transfer_details(player_id, transfers_data)
+        # if isinstance(transfers_data, dict) and 'transfers' in transfers_data:
+        #     self._store_transfer_details(player_id, transfers_data['transfers'])
+        if isinstance(transfers_data, list):
+            self._store_transfer_details(player_id, transfers_data)
     
     def _store_transfer_details(self, player_id, transfers_list):
         """Store individual transfer records in normalized table"""
@@ -134,15 +138,15 @@ class DuckDBPipeline:
         for transfer in transfers_list:
             self.conn.execute("""
                 INSERT INTO transfer_details 
-                (player_id, season, date, from_club, to_club, fee, from_club_image_url, to_club_image_url)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                (id, player_id, season, fee, from_club, to_club, transfer_date, from_club_image_url, to_club_image_url)
+                VALUES (nextval('transfer_details_seq'), ?, ?, ?, ?, ?, ?, ?, ?)
             """, [
                 player_id,
                 transfer.get('season'),
-                transfer.get('date'),
+                transfer.get('fee'),
                 transfer.get('from_club'),
                 transfer.get('to_club'),
-                transfer.get('fee'),
+                transfer.get('date'),
                 transfer.get('from_club_image_url'),
                 transfer.get('to_club_image_url')
             ])

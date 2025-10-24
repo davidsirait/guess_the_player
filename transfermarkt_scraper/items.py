@@ -6,6 +6,7 @@ class PlayerItem(scrapy.Item):
     player_id = scrapy.Field()
     player_name = scrapy.Field()
     player_url = scrapy.Field()
+    player_img_url = scrapy.Field()
     league = scrapy.Field()
     division = scrapy.Field()
     club = scrapy.Field()
@@ -16,9 +17,3 @@ class TransferItem(scrapy.Item):
     player_id = scrapy.Field()
     player_name = scrapy.Field()
     transfers = scrapy.Field()  # List of transfer records
-
-# class TransferDetail(scrapy.Item):
-#     """Item for storing player transfer history"""
-#     player_id = scrapy.Field()
-#     player_name = scrapy.Field()
-#     transfers = scrapy.Field()  # List of transfer records

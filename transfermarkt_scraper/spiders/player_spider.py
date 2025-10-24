@@ -101,27 +101,38 @@ class PlayerSpider(scrapy.Spider):
         
         # Extract player links - pattern: /player-name/profil/spieler/PLAYER_ID
         player_links = response.css('table.items a[href*="/profil/spieler/"]::attr(href)').getall()
+
+        # Extract player image urls
+        player_urls = response.css('table.items img[data-src*="portrait/medium"]::attr(data-src)').getall()
+
+        # Combine player links and image urls as list of tuples
+        player_lists = list(zip(player_links, player_urls))
         
-        # Get unique player links
-        player_links = list(set(player_links))
+        # Get unique player lists
+        player_lists = list(set(player_lists))
         
-        self.logger.info(f'Found {len(player_links)} players in {club}')
+        self.logger.info(f'Found {len(player_lists)} players in {club}')
         
-        for player_link in player_links:
+        for player_list in player_lists:
             # Extract player ID from URL using regex
-            match = re.search(r'/spieler/(\d+)', player_link)
+            match = re.search(r'/spieler/(\d+)', player_list[0])
             
             if match:
                 player_id = match.group(1)
-                player_url = response.urljoin(player_link)
+                player_url = response.urljoin(player_list[0])
+                player_img_url = player_list[1] if '/' in player_list[1] else ''
+
+                # replace size in image url from medium to header
+                player_img_url = re.sub(r'portrait/medium', 'portrait/header', player_img_url)
                 
                 # Extract player name from URL (between first two slashes)
-                player_name = player_link.split('/')[1] if '/' in player_link else 'Unknown'
+                player_name = player_list[0].split('/')[1] if '/' in player_list[0] else 'Unknown'
                 
                 yield PlayerItem(
                     player_id=player_id,
                     player_name=sanitize_string(player_name),
                     player_url=player_url,
+                    player_img_url=player_img_url,
                     league=league,
                     division=division,
                     club=sanitize_string(club)
