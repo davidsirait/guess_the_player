@@ -31,7 +31,7 @@ RETRY_HTTP_CODES = [500, 502, 503, 504, 408, 429]
 # Configure item pipelines
 ITEM_PIPELINES = {
     'transfermarkt_scraper.json_pipeline.JsonWriterPipeline': 300,
-    # 'transfermarkt_scraper.db_pipeline.DuckDBPipeline': 400,
+    'transfermarkt_scraper.db_pipeline.DuckDBPipeline': 400,
 }
 
 # Set log level

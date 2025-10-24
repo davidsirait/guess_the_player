@@ -13,7 +13,7 @@ class PlayerSpider(scrapy.Spider):
     name = 'player_spider'
     allowed_domains = ['transfermarkt.co.uk']
     
-    # Top 6 European leagues - top 3 divisions each
+    # Top 6 European leagues - top divisions each
     # Format: (league_name, division_name, league_url)
     start_urls_data = [
         # England
