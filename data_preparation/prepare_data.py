@@ -22,7 +22,7 @@ def is_youth_or_reserve_club(club_name):
     
     # Keywords to filter out
     youth_keywords = [
-        'u17', 'u18', 'u19', 'u20', 'u21', 'u22', 'u23',
+        'u16', 'u17', 'u18', 'u19', 'u20', 'u21', 'u22', 'u23',
         'sub-15', 'sub-17', 'sub-19', 'sub-20', 'sub-21',
         'youth', 'reserve', 'reserves', 'yth.', 'yth', 'you.', 
         'b team', 'b-team', 'acad.', 'academy', 'ii',
@@ -48,81 +48,111 @@ def build_cleaned_sequence(transfers_list):
     1. No youth/reserve clubs
     2. Loan followed by permanent to same club = single entry
     3. Sequential loans from same parent club = hide parent club in between
-    
+
     Example:
     Before: Man Utd → Preston (Loan) → Man Utd → Sunderland (Loan) → Man Utd → Arsenal
     After:  Man Utd → Preston → Sunderland → Man Utd → Arsenal
     """
-    
+
     cleaned = []
-    parent_club = None  # Track parent club during loan spells
-    
-    for i, transfer in enumerate(transfers_list):
-        club = transfer['to_club']
-        fee = transfer.get('fee', '')
-        
+    i = 0
+
+    while i < len(transfers_list):
+        t = transfers_list[i]
+        club = t['to_club']
+        fee = (t.get('fee') or '').lower()
+
         # Skip youth/reserve clubs
         if is_youth_or_reserve_club(club):
+            i += 1
             continue
-        
-        is_loan = fee and 'loan' in fee.lower()
-        print(f"Processing transfer to {club} | Fee: {fee} | Is loan: {is_loan}")
-        
-        # Determine if this is returning from loan
-        is_return_from_loan = fee and 'end of loan' in fee.lower()
-        
-        if len(cleaned) > 0:
-            prev = cleaned[-1]
-            prev_was_loan = prev.get('is_loan', False)
 
-            # If previous was loan and now returning to a club
-            if prev_was_loan and is_return_from_loan:
-                # Check if next transfer is also a loan
-                # If yes, this return is just between loans - skip it
-                if i + 1 < len(transfers_list):
-                    next_transfer = transfers_list[i + 1]
-                    next_fee = next_transfer.get('fee', '')
-                    next_is_loan = next_fee and 'loan' in next_fee.lower()
-                    print(f"Next transfer to {next_transfer.get('to_club')} | Fee: {fee} | Is loan: {next_is_loan}")
-                    
-                    # Skip this return if next is also loan
-                    if next_is_loan:
-                        parent_club = club  # Remember parent club
-                        continue
-        
-        # Check if previous entry was a loan to this same club
-        if len(cleaned) > 0:
-            prev = cleaned[-1]
-            prev_club = prev['club']
-            prev_was_loan = prev.get('is_loan', False)
-            
-            # If prev was loan to same club, and now permanent move to same club
-            # Replace the loan entry with permanent entry
-            if prev_was_loan and prev_club == club and not is_loan:
-                cleaned[-1] = {
+        # Flags
+        is_loan = 'loan transfer' in fee or (fee and 'loan' in fee and 'end of' not in fee)
+        is_end_of_loan = 'end of loan' in fee
+
+        # Skip "End of loan" unless it's the final return to parent
+        if is_end_of_loan:
+            # Look ahead: if next move is another loan, skip this return
+            if i + 1 < len(transfers_list):
+                next_fee = (transfers_list[i + 1].get('fee') or '').lower()
+                if 'loan' in next_fee and 'end of' not in next_fee:
+                    i += 1
+                    continue
+            # Otherwise, just treat as return (normal step)
+            i += 1
+            cleaned.append({
                     'club': club,
-                    'logo': transfer['to_club_image_url'],
-                    'season': transfer['season'],
-                    'fee': fee,
+                    'logo': t.get('to_club_image_url'),
+                    'season': t['season'],
+                    'fee': t.get('fee', ''),
                     'is_loan': False
-                }
-                parent_club = None
-                continue
-        
-        # Add this transfer
+                })
+            continue
+
+        # Handle loan followed by permanent to same club
+        if is_loan:
+            # Look ahead to see if next permanent move to same club
+            j = i + 1
+            while j < len(transfers_list):
+                next_fee = (transfers_list[j].get('fee') or '').lower()
+                next_to = transfers_list[j]['to_club']
+                if 'end of loan' in next_fee:
+                    j += 1
+                    continue
+                # If next move is permanent to same club → merge
+                if next_to == club and 'loan' not in next_fee:
+                    # Record as single permanent move
+                    cleaned.append({
+                        'club': club,
+                        'logo': t.get('to_club_image_url'),
+                        'season': transfers_list[j]['season'],
+                        'fee': transfers_list[j].get('fee', ''),
+                        'is_loan': False
+                    })
+                    i = j + 1
+                    break
+                else:
+                    # Not same club or not permanent → normal loan
+                    cleaned.append({
+                        'club': club,
+                        'logo': t.get('to_club_image_url'),
+                        'season': t['season'],
+                        'fee': t.get('fee', ''),
+                        'is_loan': True
+                    })
+                    i += 1
+                    break
+            else:
+                # no future record → treat as normal loan
+                cleaned.append({
+                    'club': club,
+                    'logo': t.get('to_club_image_url'),
+                    'season': t['season'],
+                    'fee': t.get('fee', ''),
+                    'is_loan': True
+                })
+                i += 1
+            continue
+
+        # Normal permanent transfer
         cleaned.append({
             'club': club,
-            'logo': transfer['to_club_image_url'],
-            'season': transfer['season'],
-            'fee': fee,
-            'is_loan': is_loan
+            'logo': t.get('to_club_image_url'),
+            'season': t['season'],
+            'fee': t.get('fee', ''),
+            'is_loan': False
         })
+        i += 1
 
-        # Update parent club tracking
-        if not is_loan:
-            parent_club = club
+    # Remove consecutive duplicate clubs (e.g., after merging)
+    final_cleaned = []
+    for idx, c in enumerate(cleaned):
+        if idx == 0 or c['club'] != cleaned[idx - 1]['club']:
+            final_cleaned.append(c)
 
-    return cleaned
+    return final_cleaned
+
 
 
 def get_all_sequences(conn):
@@ -134,8 +164,8 @@ def get_all_sequences(conn):
     players = conn.execute("""
         SELECT DISTINCT player_id, player_name
         FROM players
-        WHERE player_name == 'Kylian Mbappe'
-        -- ORDER BY player_name
+        -- WHERE player_name in ('Kylian Mbappe', 'Danny Welbeck')
+        ORDER BY player_name
     """).fetchdf()
     
     sequences = []
@@ -498,9 +528,9 @@ def main():
     # analyze_sequence_uniqueness(sequences)
     sequences = categorize_by_difficulty(sequences)
     # show_move_distribution(sequences)
-    # store_difficulty_analysis(conn, sequences)
+    store_difficulty_analysis(conn, sequences)
     # show_sample_questions(sequences)
-    find_interesting_sequences(sequences)
+    # find_interesting_sequences(sequences)
     # export_game_ready_data(sequences)
     
     conn.close()
