@@ -23,13 +23,13 @@ def is_youth_or_reserve_club(club_name):
     # Keywords to filter out
     youth_keywords = [
         'u16', 'u17', 'u18', 'u19', 'u20', 'u21', 'u22', 'u23',
-        'sub-15', 'sub-17', 'sub-19', 'sub-20', 'sub-21',
+        'u15', 'sub-15', 'sub-17', 'sub-19', 'sub-20', 'sub-21',
         'youth', 'reserve', 'reserves', 'yth.', 'yth', 'you.', 
         'b team', 'b-team', 'acad.', 'academy', 'ii',
         'ii team', 'ii-team', 'jgd.', 'jong', 'jrs.',
         'under 18', 'under 19', 'under 21', 'under 23',
         'u-18', 'u-19', 'u-21', 'u-23',
-        'juvenil', 'juvenile',
+        'juvenil', 'juvenile', 'without club'
     ]
     
     # check keywords
