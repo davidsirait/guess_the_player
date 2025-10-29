@@ -13,7 +13,7 @@ class PlayerSpider(scrapy.Spider):
     name = 'player_spider'
     allowed_domains = ['transfermarkt.co.uk']
     
-    # Top 6 European leagues - top divisions each
+    # Top 8 leagues - top divisions each
     # Format: (league_name, division_name, league_url)
     start_urls_data = [
         # England
@@ -45,6 +45,17 @@ class PlayerSpider(scrapy.Spider):
         ('Portugal', 'Primeira Liga', 'https://www.transfermarkt.co.uk/primeira-liga/startseite/wettbewerb/PO1'),
         # ('Portugal', 'Segunda Liga', 'https://www.transfermarkt.co.uk/liga-portugal-2/startseite/wettbewerb/PO2'),
         # ('Portugal', 'Liga 3', 'https://www.transfermarkt.co.uk/liga-3/startseite/wettbewerb/PO3'),
+
+        # Netherlands
+        ('Netherlands', 'Eredivisie', 'https://www.transfermarkt.co.uk/eredivisie/startseite/wettbewerb/NL1'),
+        # ('Netherlands', 'Eerste Divisie', 'https://www.transfermarkt.co.uk/eerste-divisie/startseite/wettbewerb/NL2'),
+        # ('Netherlands', 'Tweede Divisie', 'https://www.transfermarkt.co.uk/tweede-divisie/startseite/wettbewerb/NL3'),
+
+        # Saudi League
+        ('Saudi Arabia', 'Saudi Pro League', 'https://www.transfermarkt.co.uk/saudi-professional-league/startseite/wettbewerb/SA1'),
+
+        # MLS
+        ('USA', 'MLS', 'https://www.transfermarkt.co.uk/major-league-soccer/startseite/wettbewerb/MLS1'), 
     ]
     
     def start_requests(self):
