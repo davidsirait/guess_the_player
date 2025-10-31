@@ -43,7 +43,6 @@ def create_clubs_table(conn):
             club_id INTEGER PRIMARY KEY,
             club_name VARCHAR,
             logo_url VARCHAR,
-            country VARCHAR,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
