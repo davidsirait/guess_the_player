@@ -1,5 +1,3 @@
-"""Pydantic models"""
-
 from app.models.schemas import (
     Club,
     Question,
@@ -7,7 +5,13 @@ from app.models.schemas import (
     GuessResponse,
     PlayerLookupResponse,
     DifficultyStats,
-    StatsResponse
+    StatsResponse,
+    SessionStartRequest,
+    SessionStartResponse,
+    SessionGuessRequest,
+    SessionGuessResponse,
+    SessionNextQuestionResponse,
+    SessionEndResponse
 )
 
 __all__ = [
@@ -17,5 +21,11 @@ __all__ = [
     "GuessResponse",
     "PlayerLookupResponse",
     "DifficultyStats",
-    "StatsResponse"
+    "StatsResponse",
+    "SessionStartRequest",
+    "SessionStartResponse",
+    "SessionGuessRequest",
+    "SessionGuessResponse",
+    "SessionNextQuestionResponse",
+    "SessionEndResponse"
 ]

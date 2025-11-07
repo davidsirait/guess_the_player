@@ -23,11 +23,16 @@ class Settings(BaseSettings):
     fuzzy_match_threshold: int = 85
     player_lookup_threshold: int = 70
     
+    # Session settings
+    session_ttl: int = 3600  # Session time-to-live in seconds (1 hour)
+    session_cleanup_interval: int = 300  # Cleanup interval in seconds (5 minutes)
+
+    redis_url: str = "redis://localhost:6379"
+    
     class Config:
         env_file = ".env"
         case_sensitive = False
 
-# cached the settings instance
 @lru_cache()
 def get_settings() -> Settings:
     """Get cached settings instance"""

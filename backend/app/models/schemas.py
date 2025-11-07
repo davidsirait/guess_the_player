@@ -57,3 +57,49 @@ class StatsResponse(BaseModel):
     """Overall game statistics"""
     total_questions: int
     by_difficulty: List[DifficultyStats]
+
+# Session-related models
+class SessionStartRequest(BaseModel):
+    """Request to start a new game session"""
+    difficulty: str = Field(pattern="^(easy|medium|hard)$")
+
+
+class SessionStartResponse(BaseModel):
+    """Response when starting a new session"""
+    session_id: str
+    question: Question
+    score: int = 0
+    total_attempts: int = 0
+
+
+class SessionGuessRequest(BaseModel):
+    """Request to submit a guess in a session"""
+    guess: str = Field(min_length=1, description="Player name guess")
+
+
+class SessionGuessResponse(BaseModel):
+    """Response for a session guess"""
+    correct: bool
+    actual_answer: str
+    similarity_score: int = Field(ge=0, le=100)
+    all_possible_answers: List[str]
+    session_score: int
+    total_attempts: int
+
+
+class SessionNextQuestionResponse(BaseModel):
+    """Response when getting next question"""
+    question: Question
+    session_score: int
+    total_attempts: int
+
+
+class SessionEndResponse(BaseModel):
+    """Response when ending a session"""
+    session_id: str
+    final_score: int
+    total_attempts: int
+    correct_guesses: int
+    accuracy: float
+    difficulty: str
+    duration: str
