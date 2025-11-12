@@ -7,6 +7,7 @@ class PlayerItem(scrapy.Item):
     player_name = scrapy.Field()
     player_url = scrapy.Field()
     player_img_url = scrapy.Field()
+    market_value = scrapy.Field()
     league = scrapy.Field()
     division = scrapy.Field()
     club = scrapy.Field()

@@ -116,8 +116,11 @@ class PlayerSpider(scrapy.Spider):
         # Extract player image urls
         player_urls = response.css('table.items img[data-src*="portrait/medium"]::attr(data-src)').getall()
 
+        # Extract player current market values
+        market_values = response.css('table.items a[href*="/marktwertverlauf/spieler/"]::text').getall()
+
         # Combine player links and image urls as list of tuples
-        player_lists = list(zip(player_links, player_urls))
+        player_lists = list(zip(player_links, player_urls, market_values))
         
         # Get unique player lists
         player_lists = list(set(player_lists))
@@ -132,6 +135,7 @@ class PlayerSpider(scrapy.Spider):
                 player_id = match.group(1)
                 player_url = response.urljoin(player_list[0])
                 player_img_url = player_list[1] if '/' in player_list[1] else ''
+                market_value = player_list[2].strip() if len(player_list) > 2 else ''
 
                 # replace size in image url from medium to header
                 player_img_url = re.sub(r'portrait/medium', 'portrait/header', player_img_url)
@@ -144,6 +148,7 @@ class PlayerSpider(scrapy.Spider):
                     player_name=sanitize_string(player_name),
                     player_url=player_url,
                     player_img_url=player_img_url,
+                    market_value=market_value,
                     league=league,
                     division=division,
                     club=sanitize_string(club)

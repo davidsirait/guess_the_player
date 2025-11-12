@@ -6,18 +6,30 @@ from transfermarkt_scraper.items import PlayerItem, TransferItem
 
 class JsonWriterPipeline:
     """Pipeline to write items to JSON files"""
+
+    def __init__(self, player_file='players.json', transfer_file='transfers.json'):
+        self.player_file = player_file
+        self.transfer_file = transfer_file
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        """Get file paths from settings"""
+        return cls(
+            player_file=crawler.settings.get('PLAYER_OUTPUT_FILE', 'players.json'),
+            transfer_file=crawler.settings.get('TRANSFER_OUTPUT_FILE', 'transfers.json')
+        )
     
     def open_spider(self, spider):
         """Create output directory and file handlers when spider opens"""
         os.makedirs('output', exist_ok=True)
         
         if spider.name == 'player_spider':
-            self.file = open('output/players.json', 'w', encoding='utf-8')
+            self.file = open(self.player_file, 'w', encoding='utf-8')
             self.file.write('[\n')
             self.first_item = True
             
         elif spider.name == 'transfer_spider':
-            self.file = open('output/transfers.json', 'w', encoding='utf-8')
+            self.file = open(self.transfer_file, 'w', encoding='utf-8')
             self.file.write('[\n')
             self.first_item = True
     

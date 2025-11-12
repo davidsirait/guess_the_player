@@ -54,3 +54,7 @@ DEFAULT_REQUEST_HEADERS = {
 
 # DuckDB database path
 DUCKDB_DATABASE = 'transfermarkt.db'
+
+# Output file paths
+PLAYER_OUTPUT_FILE = 'output/players.json'
+TRANSFER_OUTPUT_FILE = 'output/transfers.json'

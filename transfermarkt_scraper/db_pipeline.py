@@ -39,6 +39,7 @@ class DuckDBPipeline:
                 player_name VARCHAR,
                 player_url VARCHAR,
                 player_img_url VARCHAR,
+                market_value VARCHAR,
                 league VARCHAR,
                 division VARCHAR,
                 club VARCHAR,
@@ -94,13 +95,14 @@ class DuckDBPipeline:
         """Store player data"""
         self.conn.execute("""
             INSERT OR REPLACE INTO players 
-            (player_id, player_name, player_url, player_img_url, league, division, club)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            (player_id, player_name, player_url, player_img_url, market_value, league, division, club)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """, [
             adapter.get('player_id'),
             adapter.get('player_name'),
             adapter.get('player_url'),
             adapter.get('player_img_url'),
+            adapter.get('market_value'),
             adapter.get('league'),
             adapter.get('division'),
             adapter.get('club')

@@ -12,11 +12,21 @@ def sanitize_club_image_url(url):
 class TransferSpider(scrapy.Spider):
     name = 'transfer_spider'
     allowed_domains = ['transfermarkt.co.uk']
+
+    @classmethod
+    def from_crawler(cls, crawler, *args, **kwargs):
+        """Initialize spider with settings"""
+        spider = super(TransferSpider, cls).from_crawler(crawler, *args, **kwargs)
+        spider.player_file = crawler.settings.get('PLAYER_OUTPUT_FILE', 'output/players.json')
+        spider.db = crawler.settings.get('DUCKDB_DATABASE')
+        spider.logger.info(f'Using player file: {spider.player_file}')
+        spider.logger.info(f'Using database: {spider.db}')
+        return spider
     
-    def __init__(self, *args, **kwargs):
-        super(TransferSpider, self).__init__(*args, **kwargs)
-        self.player_file = kwargs.get('player_file', 'output/players.json')
-        self.db = kwargs.get('db', None)
+    # def __init__(self, *args, **kwargs):
+    #     super(TransferSpider, self).__init__(*args, **kwargs)
+    #     self.player_file = kwargs.get('player_file', 'output/players.json')
+    #     self.db = kwargs.get('db', None)
     
     def start_requests(self):
         """Read player IDs from the player spider output and generate API requests (deprecated, kept for backward compatibility)"""
