@@ -40,7 +40,7 @@ def start_session(
         HTTPException: 400 if invalid difficulty
     """
     try:
-        result = session_service.create_session(request.difficulty)
+        result = session_service.create_session(request.difficulty, request.top_n)
         return SessionStartResponse(**result)
     except HTTPException:
         raise
@@ -88,6 +88,7 @@ def submit_guess(
 @router.post("/{session_id}/next", response_model=SessionNextQuestionResponse)
 def get_next_question(
     session_id: str,
+    request: SessionStartRequest,
     session_service: SessionService = Depends(get_session_service)
 ):
     """
@@ -106,7 +107,7 @@ def get_next_question(
         HTTPException: 404 if session not found
     """
     try:
-        result = session_service.get_next_question(session_id)
+        result = session_service.get_next_question(session_id, request.difficulty, request.top_n)
         return SessionNextQuestionResponse(**result)
     except HTTPException:
         raise
@@ -172,7 +173,6 @@ def get_session_status(
         # Don't expose internal player_id
         return {
             "session_id": session_data["session_id"],
-            "difficulty": session_data["difficulty"],
             "score": session_data["score"],
             "total_attempts": session_data["total_attempts"],
             "correct_guesses": session_data["correct_guesses"],
