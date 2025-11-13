@@ -32,7 +32,7 @@ class GuessResponse(BaseModel):
     """Response for a guess check"""
     correct: bool
     actual_answer: str
-    similarity_score: int = Field(ge=0, le=100)
+    similarity_score: float = Field(ge=0, le=100)
     all_possible_answers: List[str]
 
 
@@ -81,7 +81,7 @@ class SessionGuessResponse(BaseModel):
     """Response for a session guess"""
     correct: bool
     actual_answer: str
-    similarity_score: int = Field(ge=0, le=100)
+    similarity_score: float = Field(ge=0, le=100)
     all_possible_answers: List[str]
     session_score: int
     total_attempts: int

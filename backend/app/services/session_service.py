@@ -22,12 +22,13 @@ class SessionService:
         self.game_service = GameService()
         self.settings = get_settings()
     
-    def create_session(self, difficulty: str) -> Dict[str, Any]:
+    def create_session(self, difficulty: str, top_n: int = 200) -> Dict[str, Any]:
         """
         Create a new game session
         
         Args:
-            difficulty: Game difficulty level
+            difficulty: Career length difficulty level
+            top_n: Limit for top N players by market value
             
         Returns:
             Session data with first question
@@ -36,12 +37,13 @@ class SessionService:
         session_id = str(uuid.uuid4())
         
         # Get first question
-        question = self.game_service.get_random_question(difficulty)
+        question = self.game_service.get_random_question(difficulty, top_n)
         
         # Create session data
         session_data = {
             "session_id": session_id,
             "difficulty": difficulty,
+            "top_n": top_n,
             "current_question_player_id": question.player_id,
             "score": 0,
             "total_attempts": 0,
@@ -130,7 +132,7 @@ class SessionService:
             "total_attempts": session_data["total_attempts"]
         }
     
-    def get_next_question(self, session_id: str) -> Dict[str, Any]:
+    def get_next_question(self, session_id: str, difficulty:str, top_n:int = 200) -> Dict[str, Any]:
         """
         Get next question for the session
         
@@ -143,9 +145,8 @@ class SessionService:
         # Get session
         session_data = self.get_session(session_id)
         
-        # Get new question with same difficulty
-        difficulty = session_data.get("difficulty", "medium")
-        question = self.game_service.get_random_question(difficulty)
+        # Get new question for the session
+        question = self.game_service.get_random_question(difficulty, top_n)
         
         # Update session with new question
         session_data["current_question_player_id"] = question.player_id

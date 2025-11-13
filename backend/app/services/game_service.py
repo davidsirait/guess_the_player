@@ -40,7 +40,6 @@ class GameService:
             with player_cte AS(
                 SELECT 
                     player_id,
-                    player_name,
                     difficulty,
                     ROW_NUMBER () OVER (ORDER BY market_value_numeric DESC) AS rn,
                     num_moves,
@@ -52,7 +51,6 @@ class GameService:
             )
             SELECT 
                 player_id,
-                player_name,
                 difficulty,
                 num_moves,
                 shared_by,
@@ -139,6 +137,7 @@ class GameService:
         
         # Fuzzy match
         matched_name, score = fuzzy_match_player(guess, all_possible_names)
+        print(score)
         is_correct = score >= settings.fuzzy_match_threshold
         
         return GuessResponse(
