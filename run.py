@@ -37,10 +37,34 @@ def run_transfer_spider():
     
     return result.returncode == 0
 
+def run_extract_club_process():
+    """Run the extract club script to process club data"""
+    print("\n" + "="*60)
+    print("Running extract_club.py ...")
+    print("="*60 + "\n")
+    
+    result = subprocess.run([
+        'python', 'data_preparation/extract_clubs.py'
+    ])
+    
+    return result.returncode == 0
+
+def run_create_sequence_process():
+    """Run the script to create players transfer sequence"""
+    print("\n" + "="*60)
+    print("Running create_sequence.py ...")
+    print("="*60 + "\n")
+    
+    result = subprocess.run([
+        'python', 'data_preparation/create_sequence.py'
+    ])
+    
+    return result.returncode == 0
+
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: python run.py [players|transfers|all]")
+        print("Usage: python run.py [players|transfers|all|extract_club|create_sequence]")
         sys.exit(1)
     
     command = sys.argv[1].lower()
@@ -54,6 +78,22 @@ def main():
             print("\n✗ Player spider failed!")
             sys.exit(1)
     
+    elif command == 'extract_club':
+        success = run_extract_club_process()
+        if success:
+            print("\n✓ Extracting club data successful!")
+        else:
+            print("\n✗ Club extraction failed!")
+            sys.exit(1)
+    
+    elif command == 'create_sequence':
+        success = run_create_sequence_process()
+        if success:
+            print("\n✓ Players transfer sequence created successfuly!")
+        else:
+            print("\n✗ Transfer sequence creation failed!")
+            sys.exit(1)
+    
     elif command == 'transfers':
         success = run_transfer_spider()
         if success:
@@ -62,7 +102,7 @@ def main():
         else:
             print("\n✗ Transfer spider failed!")
             sys.exit(1)
-    
+
     elif command == 'all':
         # Run player spider first
         player_success = run_player_spider()

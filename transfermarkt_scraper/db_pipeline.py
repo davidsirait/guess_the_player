@@ -3,6 +3,20 @@ import json
 from itemadapter import ItemAdapter
 from transfermarkt_scraper.items import PlayerItem, TransferItem
 
+def parse_market_value(value_str):
+    """Convert market value string to float (in millions)"""
+    if not value_str or value_str == '-':
+        return 0.0
+    
+    clean = value_str.replace('€', '').replace(' ', '').lower()
+    
+    if 'm' in clean:
+        return float(clean.replace('m', ''))
+    elif 'k' in clean:
+        return float(clean.replace('k', '')) / 1000  # Convert to millions
+    else:
+        return float(clean) / 1_000_000
+
 class DuckDBPipeline:
     """Pipeline to store items in DuckDB database"""
     
@@ -40,6 +54,7 @@ class DuckDBPipeline:
                 player_url VARCHAR,
                 player_img_url VARCHAR,
                 market_value VARCHAR,
+                market_value_numeric FLOAT,
                 league VARCHAR,
                 division VARCHAR,
                 club VARCHAR,
@@ -95,14 +110,16 @@ class DuckDBPipeline:
         """Store player data"""
         self.conn.execute("""
             INSERT OR REPLACE INTO players 
-            (player_id, player_name, player_url, player_img_url, market_value, league, division, club)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            (player_id, player_name, player_url, player_img_url, 
+            market_value, market_value_numeric, league, division, club)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, [
             adapter.get('player_id'),
             adapter.get('player_name'),
             adapter.get('player_url'),
             adapter.get('player_img_url'),
             adapter.get('market_value'),
+            parse_market_value(adapter.get('market_value')),
             adapter.get('league'),
             adapter.get('division'),
             adapter.get('club')
@@ -126,8 +143,6 @@ class DuckDBPipeline:
         ])
         
         # Optional: Also store normalized transfer details for easier querying
-        # if isinstance(transfers_data, dict) and 'transfers' in transfers_data:
-        #     self._store_transfer_details(player_id, transfers_data['transfers'])
         if isinstance(transfers_data, list):
             self._store_transfer_details(player_id, transfers_data)
     

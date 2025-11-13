@@ -10,8 +10,8 @@ USER_AGENT = 'guess-the-player/1.0 (https://github.com/davidsirait/guess-the-pla
 ROBOTSTXT_OBEY = True
 
 # Configure maximum concurrent requests
-CONCURRENT_REQUESTS = 4
-CONCURRENT_REQUESTS_PER_DOMAIN = 2
+CONCURRENT_REQUESTS = 8
+CONCURRENT_REQUESTS_PER_DOMAIN = 4
 
 # Configure a delay for requests (in seconds)
 # Respect the Crawl-delay: 2 from robots.txt
