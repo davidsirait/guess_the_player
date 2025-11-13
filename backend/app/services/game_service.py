@@ -101,10 +101,12 @@ class GameService:
         # Get the correct answer
         query = """
             SELECT 
-                player_name, 
-                sequence_string
-            FROM sequence_analysis
-            WHERE player_id = ?
+                a.player_name,
+                b.player_img_url, 
+                a.sequence_string
+            FROM sequence_analysis AS a
+            LEFT JOIN players AS b ON a.player_id = b.player_id
+            WHERE a.player_id = ?
         """
         
         result = execute_query_one(query, [player_id])
@@ -112,17 +114,22 @@ class GameService:
         if not result:
             raise HTTPException(status_code=404, detail="Player not found")
         
-        correct_player_name, sequence_string = result
+        correct_player_name, correct_player_img_url, sequence_string = result
         
         # Find all players with the same sequence
         all_answers_query = """
-            SELECT player_name
-            FROM sequence_analysis
-            WHERE sequence_string = ?
+            SELECT 
+                a.player_name,
+                b.player_img_url, 
+                a.sequence_string
+            FROM sequence_analysis AS a
+            LEFT JOIN players AS b ON a.player_id = b.player_id
+            WHERE a.sequence_string = ?
         """
         
         all_answers = execute_query(all_answers_query, [sequence_string])
         all_possible_names = [name[0] for name in all_answers]
+        all_possible_names_img_urls = [name[1] for name in all_answers]
         
         # Check exact match first
         guess_clean = guess.strip().lower()
@@ -131,20 +138,23 @@ class GameService:
                 return GuessResponse(
                     correct=True,
                     actual_answer=correct_player_name,
+                    actual_answer_img_url=correct_player_img_url,
                     similarity_score=100,
-                    all_possible_answers=all_possible_names
+                    all_possible_answers=all_possible_names,
+                    all_possible_answers_img_urls=all_possible_names_img_urls
                 )
         
         # Fuzzy match
         matched_name, score = fuzzy_match_player(guess, all_possible_names)
-        print(score)
         is_correct = score >= settings.fuzzy_match_threshold
         
         return GuessResponse(
             correct=is_correct,
             actual_answer=correct_player_name,
+            actual_answer_img_url=correct_player_img_url,
             similarity_score=score,
-            all_possible_answers=all_possible_names
+            all_possible_answers=all_possible_names,
+            all_possible_answers_img_urls=all_possible_names_img_urls
         )
     
     @staticmethod

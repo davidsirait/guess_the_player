@@ -37,7 +37,7 @@ class SessionService:
         session_id = str(uuid.uuid4())
         
         # Get first question
-        question = self.game_service.get_random_question(difficulty, top_n)
+        question = GameService.get_random_question(difficulty, top_n)
         
         # Create session data
         session_data = {
@@ -126,8 +126,10 @@ class SessionService:
         return {
             "correct": guess_result.correct,
             "actual_answer": guess_result.actual_answer,
+            "actual_answer_img_url": guess_result.actual_answer_img_url,
             "similarity_score": guess_result.similarity_score,
             "all_possible_answers": guess_result.all_possible_answers,
+            "all_possible_answers_img_urls": guess_result.all_possible_answers_img_urls,
             "session_score": session_data["score"],
             "total_attempts": session_data["total_attempts"]
         }

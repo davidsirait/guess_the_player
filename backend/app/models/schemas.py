@@ -32,8 +32,10 @@ class GuessResponse(BaseModel):
     """Response for a guess check"""
     correct: bool
     actual_answer: str
+    actual_answer_img_url: str
     similarity_score: float = Field(ge=0, le=100)
     all_possible_answers: List[str]
+    all_possible_answers_img_urls: List[str]
 
 
 class PlayerLookupResponse(BaseModel):
@@ -61,7 +63,8 @@ class StatsResponse(BaseModel):
 # Session-related models
 class SessionStartRequest(BaseModel):
     """Request to start a new game session"""
-    difficulty: str = Field(pattern="^(easy|medium|hard)$")
+    difficulty: str = Field(pattern="^(short|moderate|long)$")
+    top_n: int = Field(gt=0, le=5000, description="Top N players to select questions from")
 
 
 class SessionStartResponse(BaseModel):
@@ -81,8 +84,10 @@ class SessionGuessResponse(BaseModel):
     """Response for a session guess"""
     correct: bool
     actual_answer: str
+    actual_answer_img_url: str
     similarity_score: float = Field(ge=0, le=100)
     all_possible_answers: List[str]
+    all_possible_answers_img_urls: List[str]
     session_score: int
     total_attempts: int
 
