@@ -162,9 +162,11 @@ def get_all_sequences(conn):
     
     # Get all players
     players = conn.execute("""
-        SELECT DISTINCT player_id, player_name
+        SELECT 
+            DISTINCT player_id, 
+            player_name, 
+            market_value_numeric
         FROM players
-        -- WHERE player_name in ('Kylian Mbappe', 'Danny Welbeck')
         ORDER BY player_name
     """).fetchdf()
     
@@ -206,6 +208,7 @@ def get_all_sequences(conn):
         sequences.append({
             'player_id': player['player_id'],
             'player_name': player['player_name'],
+            'market_value_numeric': player['market_value_numeric'],
             'num_moves': len(cleaned),
             'sequence_string': sequence_string,
             'clubs': cleaned
@@ -320,6 +323,7 @@ def store_difficulty_analysis(conn, sequences):
         CREATE TABLE sequence_analysis (
             player_id VARCHAR PRIMARY KEY,
             player_name VARCHAR,
+            market_value_numeric FLOAT,
             num_moves INTEGER,
             num_players_with_same_seq INTEGER,
             difficulty VARCHAR,
@@ -332,12 +336,13 @@ def store_difficulty_analysis(conn, sequences):
     for seq in sequences:
         conn.execute("""
             INSERT INTO sequence_analysis
-            (player_id, player_name, num_moves, num_players_with_same_seq, 
+            (player_id, player_name, market_value_numeric, num_moves, num_players_with_same_seq, 
              difficulty, sequence_string, club_jsons)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """, [
             seq['player_id'],
             seq['player_name'],
+            seq['market_value_numeric'],
             seq['num_moves'],
             seq['num_players_with_seq'],
             seq['difficulty'],
