@@ -16,12 +16,13 @@ class GameService:
     """Service for game-related operations"""
     
     @staticmethod
-    def get_random_question(difficulty: str) -> Question:
+    def get_random_question(difficulty: str, top_n: int = 200) -> Question:
         """
-        Get a random question by difficulty
+        Get a random question by career length and top n players by market value
         
         Args:
-            difficulty: 'easy', 'medium', or 'hard'
+            difficulty: 'short', 'moderate', or 'long'
+            top_n : Limit to top N players by market value
             
         Returns:
             Question object
@@ -29,31 +30,46 @@ class GameService:
         Raises:
             HTTPException: If difficulty invalid or no questions available
         """
-        if difficulty not in ['easy', 'medium', 'hard']:
+        if difficulty not in ['short', 'moderate', 'long']:
             raise HTTPException(
                 status_code=400,
-                detail="Difficulty must be 'easy', 'medium', or 'hard'"
+                detail="Career length must be 'short', 'moderate', or 'long'"
             )
         
         query = """
+            with player_cte AS(
+                SELECT 
+                    player_id,
+                    player_name,
+                    difficulty,
+                    ROW_NUMBER () OVER (ORDER BY market_value_numeric DESC) AS rn,
+                    num_moves,
+                    num_players_with_same_seq as shared_by,
+                    club_jsons
+                FROM sequence_analysis
+                WHERE TRUE
+                ORDER BY market_value_numeric DESC
+            )
             SELECT 
                 player_id,
+                player_name,
                 difficulty,
                 num_moves,
-                num_players_with_same_seq as shared_by,
-                clubs_json
-            FROM sequence_analysis
-            WHERE difficulty = ?
+                shared_by,
+                club_jsons    
+            FROM player_cte 
+            WHERE rn <= ?
+            AND difficulty = ?
             ORDER BY RANDOM()
-            LIMIT 1
+            LIMIT 1;
         """
         
-        result = execute_query_one(query, [difficulty])
+        result = execute_query_one(query, [top_n, difficulty])
         
         if not result:
             raise HTTPException(
                 status_code=404,
-                detail=f"No {difficulty} questions available"
+                detail=f"No questions available for top {top_n} players with career length {difficulty}"
             )
         
         player_id, diff, num_moves, shared_by, clubs_json = result
@@ -86,7 +102,9 @@ class GameService:
         
         # Get the correct answer
         query = """
-            SELECT player_name, sequence_string
+            SELECT 
+                player_name, 
+                sequence_string
             FROM sequence_analysis
             WHERE player_id = ?
         """
@@ -172,7 +190,7 @@ class GameService:
                 player_id,
                 player_name,
                 num_moves,
-                clubs_json
+                club_jsons
             FROM sequence_analysis
             WHERE player_id = ?
         """

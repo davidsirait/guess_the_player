@@ -27,7 +27,11 @@ class Settings(BaseSettings):
     session_ttl: int = 3600  # Session time-to-live in seconds (1 hour)
     session_cleanup_interval: int = 300  # Cleanup interval in seconds (5 minutes)
 
+    # redis url settings
     redis_url: str = "redis://localhost:6379"
+
+    # Set limit based on market value for players retrieval
+    top_players_limit: int = 100
     
     class Config:
         env_file = ".env"

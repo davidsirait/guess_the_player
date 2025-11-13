@@ -265,7 +265,7 @@ def analyze_sequence_uniqueness(sequences):
 
 
 def categorize_by_difficulty(sequences):
-    """Categorize sequences by difficulty (based on length and uniqueness)"""
+    """Categorize sequences by difficulty based on number of moves"""
     
     print("\nDifficulty Distribution (based on number of moves):")
     print("-"*80)
@@ -282,15 +282,15 @@ def categorize_by_difficulty(sequences):
         num_moves = seq['num_moves']
         num_players = seq['num_players_with_seq']
         
-        # Easy: Short career (2-4 moves) AND unique or rare
+        # Short career (up to 4 moves) AND unique or rare
         if num_moves <= 4 :
-            difficulty = 'easy'
-        # Medium: 5-8 moves OR somewhat shared
-        elif num_moves <= 8 :
-            difficulty = 'medium'
-        # Hard: Long career (9+ moves) OR very common sequence
+            difficulty = 'short'
+        # Moderate career : 4 - 7 moves OR somewhat shared
+        elif num_moves <= 7 :
+            difficulty = 'moderate'
+        # Long career (8+ moves) OR very common sequence
         else :
-            difficulty = 'hard'
+            difficulty = 'long'
         
         seq['difficulty'] = difficulty
     
@@ -300,7 +300,7 @@ def categorize_by_difficulty(sequences):
         diff = seq['difficulty']
         difficulty_counts[diff] = difficulty_counts.get(diff, 0) + 1
     
-    for difficulty in ['easy', 'medium', 'hard']:
+    for difficulty in ['short', 'moderate', 'long']:
         count = difficulty_counts.get(difficulty, 0)
         pct = count / len(sequences) * 100 if len(sequences) > 0 else 0
         bar = '█' * int(pct / 2)
@@ -361,7 +361,7 @@ def show_sample_questions(sequences):
     
     import random
     
-    for difficulty in ['easy', 'medium', 'hard']:
+    for difficulty in ['short', 'moderate', 'long']:
         print(f"\n{difficulty.upper()} Questions:")
         print("-"*80)
         
@@ -432,7 +432,7 @@ def export_game_ready_data(sequences):
     import random
     
     # Export by difficulty
-    for difficulty in ['easy', 'medium', 'hard']:
+    for difficulty in ['short', 'moderate', 'long']:
         # Get sequences for this difficulty
         diff_sequences = [s for s in sequences if s['difficulty'] == difficulty]
         
