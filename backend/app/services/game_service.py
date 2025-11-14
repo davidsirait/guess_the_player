@@ -3,13 +3,32 @@ Business logic for the career sequence game
 """
 
 import json
+import re
 from typing import Optional, Tuple, List
 from fastapi import HTTPException
 
 from app.models.schemas import Question, GuessResponse, PlayerLookupResponse, Club, StatsResponse, DifficultyStats
 from app.services.database import execute_query, execute_query_one
 from app.utils.fuzzy_match import fuzzy_match_player
+from app.utils.image_helpers import get_player_image_url, get_club_image_url, extract_club_id_from_url
 from app.config import get_settings
+
+
+def sanitize_guess(guess: str) -> str:
+    """Sanitize user input for player name guesses"""
+    if not guess:
+        return ""
+    
+    # Strip whitespace
+    guess = guess.strip()
+    
+    # Remove excessive whitespace
+    guess = re.sub(r'\s+', ' ', guess)
+    
+    # Remove special characters except hyphens, apostrophes, and spaces
+    guess = re.sub(r'[^\w\s\'-]', '', guess)
+    
+    return guess
 
 
 class GameService:
@@ -22,7 +41,7 @@ class GameService:
         
         Args:
             difficulty: 'short', 'moderate', or 'long'
-            top_n : Limit to top N players by market value
+            top_n: Limit to top N players by market value (max 5000)
             
         Returns:
             Question object
@@ -35,6 +54,9 @@ class GameService:
                 status_code=400,
                 detail="Career length must be 'short', 'moderate', or 'long'"
             )
+        
+        # Validate and cap top_n
+        top_n = max(1, min(top_n, 5000))
         
         query = """
             with player_cte AS(
@@ -62,7 +84,15 @@ class GameService:
             LIMIT 1;
         """
         
-        result = execute_query_one(query, [top_n, difficulty])
+        try:
+            result = execute_query_one(query, [top_n, difficulty])
+        except Exception as e:
+            # Log error but don't expose internals
+            print(f"Database error in get_random_question: {e}")
+            raise HTTPException(
+                status_code=500,
+                detail="Error retrieving question"
+            )
         
         if not result:
             raise HTTPException(
@@ -73,12 +103,22 @@ class GameService:
         player_id, diff, num_moves, shared_by, clubs_json = result
         clubs = json.loads(clubs_json) if clubs_json else []
         
+        # Process clubs to add fallback images
+        processed_clubs = []
+        for club in clubs:
+            club_id = extract_club_id_from_url(club.get('logo', ''))
+            processed_clubs.append(Club(
+                club=club.get('club', ''),
+                logo=get_club_image_url(club_id, club.get('logo', '')),
+                season=club.get('season', '')
+            ))
+        
         return Question(
             player_id=player_id,
             difficulty=diff,
             num_moves=num_moves,
             shared_by=shared_by,
-            clubs=[Club(**club) for club in clubs]
+            clubs=processed_clubs
         )
     
     @staticmethod
@@ -88,7 +128,7 @@ class GameService:
         
         Args:
             player_id: ID of the player to guess
-            guess: Player name guess
+            guess: Player name guess (will be sanitized)
             
         Returns:
             GuessResponse with correctness and details
@@ -97,6 +137,15 @@ class GameService:
             HTTPException: If player not found
         """
         settings = get_settings()
+        
+        # Sanitize the guess
+        guess = sanitize_guess(guess)
+        
+        if not guess:
+            raise HTTPException(
+                status_code=400,
+                detail="Guess cannot be empty"
+            )
         
         # Get the correct answer
         query = """
@@ -109,7 +158,14 @@ class GameService:
             WHERE a.player_id = ?
         """
         
-        result = execute_query_one(query, [player_id])
+        try:
+            result = execute_query_one(query, [player_id])
+        except Exception as e:
+            print(f"Database error in check_guess: {e}")
+            raise HTTPException(
+                status_code=500,
+                detail="Error checking guess"
+            )
         
         if not result:
             raise HTTPException(status_code=404, detail="Player not found")
@@ -127,11 +183,23 @@ class GameService:
             WHERE a.sequence_string = ?
         """
         
-        all_answers = execute_query(all_answers_query, [sequence_string])
-        all_possible_names = [name[0] for name in all_answers]
-        all_possible_names_img_urls = [name[1] for name in all_answers]
+        try:
+            all_answers = execute_query(all_answers_query, [sequence_string])
+        except Exception as e:
+            print(f"Database error getting all answers: {e}")
+            # Continue with just the main answer
+            all_answers = [(correct_player_name, correct_player_img_url, sequence_string)]
         
-        # Check exact match first
+        all_possible_names = [name[0] for name in all_answers]
+        all_possible_names_img_urls = [
+            get_player_image_url(player_id, name[1] if name[1] else "") 
+            for name in all_answers
+        ]
+        
+        # Get the correct player's image with fallback
+        correct_player_img_url = get_player_image_url(player_id, correct_player_img_url)
+        
+        # Check exact match first (case-insensitive)
         guess_clean = guess.strip().lower()
         for name in all_possible_names:
             if guess_clean == name.lower():
@@ -139,7 +207,7 @@ class GameService:
                     correct=True,
                     actual_answer=correct_player_name,
                     actual_answer_img_url=correct_player_img_url,
-                    similarity_score=100,
+                    similarity_score=100.0,
                     all_possible_answers=all_possible_names,
                     all_possible_answers_img_urls=all_possible_names_img_urls
                 )
@@ -173,13 +241,30 @@ class GameService:
         """
         settings = get_settings()
         
+        # Sanitize input
+        player_name = sanitize_guess(player_name)
+        
+        if not player_name:
+            raise HTTPException(
+                status_code=400,
+                detail="Player name cannot be empty"
+            )
+        
         # Get all players for fuzzy matching
         all_players_query = """
             SELECT player_id, player_name
             FROM sequence_analysis
         """
         
-        all_players = execute_query(all_players_query)
+        try:
+            all_players = execute_query(all_players_query)
+        except Exception as e:
+            print(f"Database error in lookup_player: {e}")
+            raise HTTPException(
+                status_code=500,
+                detail="Error looking up player"
+            )
+        
         player_names = {name: pid for pid, name in all_players}
         
         # Fuzzy match
@@ -204,7 +289,14 @@ class GameService:
             WHERE player_id = ?
         """
         
-        result = execute_query_one(query, [player_id])
+        try:
+            result = execute_query_one(query, [player_id])
+        except Exception as e:
+            print(f"Database error getting player data: {e}")
+            raise HTTPException(
+                status_code=500,
+                detail="Error retrieving player data"
+            )
         
         if not result:
             raise HTTPException(status_code=404, detail="Player not found")
@@ -212,11 +304,21 @@ class GameService:
         pid, pname, num_moves, clubs_json = result
         clubs = json.loads(clubs_json) if clubs_json else []
         
+        # Process clubs to add fallback images
+        processed_clubs = []
+        for club in clubs:
+            club_id = extract_club_id_from_url(club.get('logo', ''))
+            processed_clubs.append(Club(
+                club=club.get('club', ''),
+                logo=get_club_image_url(club_id, club.get('logo', '')),
+                season=club.get('season', '')
+            ))
+        
         return PlayerLookupResponse(
             player_id=pid,
             player_name=pname,
             num_moves=num_moves,
-            clubs=[Club(**club) for club in clubs]
+            clubs=processed_clubs
         )
     
     @staticmethod
@@ -240,8 +342,15 @@ class GameService:
         
         total_query = "SELECT COUNT(*) FROM sequence_analysis"
         
-        stats = execute_query(stats_query)
-        total = execute_query_one(total_query)[0]
+        try:
+            stats = execute_query(stats_query)
+            total = execute_query_one(total_query)[0]
+        except Exception as e:
+            print(f"Database error in get_statistics: {e}")
+            raise HTTPException(
+                status_code=500,
+                detail="Error retrieving statistics"
+            )
         
         return StatsResponse(
             total_questions=total,
