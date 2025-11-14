@@ -8,3 +8,4 @@ __pycache__/
 .scrapy/
 *.db
 *.wal
+static/
