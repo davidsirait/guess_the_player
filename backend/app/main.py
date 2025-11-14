@@ -2,17 +2,25 @@
 FastAPI Backend for Career Sequence Game
 """
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 from contextlib import asynccontextmanager
 import asyncio
+import os
 
 from app.config import get_settings
 from app.routers import game, player, session
 from app.dependencies import get_session_service
 
 settings = get_settings()
+
+# Initialize rate limiter
+limiter = Limiter(key_func=get_remote_address)
 
 # Background task for session cleanup
 async def cleanup_sessions_task():
@@ -48,14 +56,26 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Configure CORS
+# Add rate limiter state
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# Configure CORS - use parsed origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins,
+    allow_origins=settings.get_cors_origins(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Create static directory if it doesn't exist
+os.makedirs("static/images/players", exist_ok=True)
+os.makedirs("static/images/clubs", exist_ok=True)
+os.makedirs("static/images/placeholders", exist_ok=True)
+
+# Mount static files for images
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Include routers
 app.include_router(game.router)
