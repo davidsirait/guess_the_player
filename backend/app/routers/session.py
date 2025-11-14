@@ -3,7 +3,13 @@ Session-based game API endpoints
 Provides stateful gameplay with score tracking and cheat prevention
 """
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+import uuid
+
+# Initialize limiter
+limiter = Limiter(key_func=get_remote_address)
 
 from app.models.schemas import (
     SessionStartRequest,
@@ -19,6 +25,18 @@ from app.dependencies import get_session_service
 router = APIRouter(prefix="/session", tags=["session"])
 
 
+def validate_session_id(session_id: str) -> str:
+    """Validate that session_id is a valid UUID"""
+    try:
+        uuid.UUID(session_id)
+        return session_id
+    except ValueError:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid session ID format"
+        )
+
+
 @router.post("/start", response_model=SessionStartResponse)
 def start_session(
     request: SessionStartRequest,
@@ -31,13 +49,13 @@ def start_session(
     Use this session ID for all subsequent guesses.
     
     Args:
-        request: Contains difficulty level
+        request: Contains difficulty level and top_n players
         
     Returns:
         Session ID, first question, and initial score
         
     Raises:
-        HTTPException: 400 if invalid difficulty
+        HTTPException: 400 if invalid difficulty or top_n out of range
     """
     try:
         result = session_service.create_session(request.difficulty, request.top_n)
@@ -45,43 +63,54 @@ def start_session(
     except HTTPException:
         raise
     except Exception as e:
+        # Log but don't expose internal errors
+        print(f"Error creating session: {e}")
         raise HTTPException(
             status_code=500,
-            detail=f"Error creating session: {str(e)}"
+            detail="Error creating session"
         )
 
 
 @router.post("/{session_id}/guess", response_model=SessionGuessResponse)
+@limiter.limit("10/minute")
 def submit_guess(
+    request: Request,
     session_id: str,
-    request: SessionGuessRequest,
+    guess_request: SessionGuessRequest,
     session_service: SessionService = Depends(get_session_service)
 ):
     """
     Submit a guess for the current question in session
     
+    Rate limited to 10 guesses per minute per IP to prevent abuse.
+    
     Validates that guess is for the current question in the session,
     preventing cheating by guessing for different players.
     
     Args:
-        session_id: Session identifier
-        request: Contains player name guess
+        request: FastAPI request object (for rate limiting)
+        session_id: Session identifier (UUID format)
+        guess_request: Contains player name guess
         
     Returns:
         Result with correctness, answer, score, and similarity
         
     Raises:
-        HTTPException: 404 if session not found, 400 if no active question
+        HTTPException: 404 if session not found, 400 if invalid session ID or no active question, 429 if rate limit exceeded
     """
+    # Validate session ID format
+    validate_session_id(session_id)
+    
     try:
-        result = session_service.submit_guess(session_id, request.guess)
+        result = session_service.submit_guess(session_id, guess_request.guess)
         return SessionGuessResponse(**result)
     except HTTPException:
         raise
     except Exception as e:
+        print(f"Error submitting guess: {e}")
         raise HTTPException(
             status_code=500,
-            detail=f"Error submitting guess: {str(e)}"
+            detail="Error submitting guess"
         )
 
 
@@ -95,26 +124,31 @@ def get_next_question(
     Get the next question in the session
     
     Call this after a guess to move to the next question.
-    Question difficulty matches the session difficulty.
+    You can optionally change difficulty and top_n for the next question.
     
     Args:
-        session_id: Session identifier
+        session_id: Session identifier (UUID format)
+        request: Contains difficulty and top_n (can be same or different from session start)
         
     Returns:
         New question with current session score
         
     Raises:
-        HTTPException: 404 if session not found
+        HTTPException: 404 if session not found, 400 if invalid session ID
     """
+    # Validate session ID format
+    validate_session_id(session_id)
+    
     try:
         result = session_service.get_next_question(session_id, request.difficulty, request.top_n)
         return SessionNextQuestionResponse(**result)
     except HTTPException:
         raise
     except Exception as e:
+        print(f"Error getting next question: {e}")
         raise HTTPException(
             status_code=500,
-            detail=f"Error getting next question: {str(e)}"
+            detail="Error getting next question"
         )
 
 
@@ -129,23 +163,27 @@ def end_session(
     Deletes the session and returns final score, accuracy, and duration.
     
     Args:
-        session_id: Session identifier
+        session_id: Session identifier (UUID format)
         
     Returns:
         Final session statistics
         
     Raises:
-        HTTPException: 404 if session not found
+        HTTPException: 404 if session not found, 400 if invalid session ID
     """
+    # Validate session ID format
+    validate_session_id(session_id)
+    
     try:
         result = session_service.end_session(session_id)
         return SessionEndResponse(**result)
     except HTTPException:
         raise
     except Exception as e:
+        print(f"Error ending session: {e}")
         raise HTTPException(
             status_code=500,
-            detail=f"Error ending session: {str(e)}"
+            detail="Error ending session"
         )
 
 
@@ -160,14 +198,17 @@ def get_session_status(
     Useful for checking score, attempts, and session info.
     
     Args:
-        session_id: Session identifier
+        session_id: Session identifier (UUID format)
         
     Returns:
         Current session data
         
     Raises:
-        HTTPException: 404 if session not found
+        HTTPException: 404 if session not found, 400 if invalid session ID
     """
+    # Validate session ID format
+    validate_session_id(session_id)
+    
     try:
         session_data = session_service.get_session(session_id)
         # Don't expose internal player_id
@@ -182,7 +223,8 @@ def get_session_status(
     except HTTPException:
         raise
     except Exception as e:
+        print(f"Error getting session status: {e}")
         raise HTTPException(
             status_code=500,
-            detail=f"Error getting session status: {str(e)}"
+            detail="Error getting session status"
         )
