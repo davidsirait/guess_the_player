@@ -3,7 +3,7 @@ Pydantic models for request/response validation
 """
 
 from pydantic import BaseModel, Field
-from typing import List
+from typing import List, Optional
 
 
 class Club(BaseModel):
@@ -90,6 +90,14 @@ class SessionGuessResponse(BaseModel):
     all_possible_answers_img_urls: List[str]
     session_score: int
     total_attempts: int
+
+
+class SessionNextQuestionRequest(BaseModel):
+    """Request for next question (optional params to override session defaults)"""
+    difficulty: Optional[str] = Field(None, pattern="^(short|moderate|long)$", 
+                                      description="Optional: Override difficulty for this question")
+    top_n: Optional[int] = Field(None, gt=0, le=5000, 
+                                 description="Optional: Override top_n for this question")
 
 
 class SessionNextQuestionResponse(BaseModel):

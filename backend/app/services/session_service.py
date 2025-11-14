@@ -39,11 +39,11 @@ class SessionService:
         # Get first question
         question = GameService.get_random_question(difficulty, top_n)
         
-        # Create session data
+        # Create session data - STORE difficulty and top_n
         session_data = {
             "session_id": session_id,
-            "difficulty": difficulty,
-            "top_n": top_n,
+            "difficulty": difficulty,              # STORED for future use
+            "top_n": top_n,                        # STORED for future use
             "current_question_player_id": question.player_id,
             "score": 0,
             "total_attempts": 0,
@@ -52,8 +52,8 @@ class SessionService:
             "last_activity": datetime.now().isoformat()
         }
         
-        # Store session with TTL (default 1 hour)
-        ttl = getattr(self.settings, 'session_ttl', 3600)
+        # Store session with TTL (default 6 hours)
+        ttl = getattr(self.settings, 'session_ttl', 21600)
         self.storage.set(f"session:{session_id}", session_data, ttl)
         
         return {
@@ -134,12 +134,22 @@ class SessionService:
             "total_attempts": session_data["total_attempts"]
         }
     
-    def get_next_question(self, session_id: str, difficulty:str, top_n:int = 200) -> Dict[str, Any]:
+    def get_next_question(
+        self, 
+        session_id: str, 
+        difficulty: Optional[str] = None, 
+        top_n: Optional[int] = None
+    ) -> Dict[str, Any]:
         """
         Get next question for the session
         
+        Difficulty and top_n are optional. If not provided, uses values from session.
+        If provided, updates the session with new values for future questions.
+        
         Args:
             session_id: Session identifier
+            difficulty: Optional difficulty override (defaults to session's difficulty)
+            top_n: Optional top_n override (defaults to session's top_n)
             
         Returns:
             New question data
@@ -147,11 +157,17 @@ class SessionService:
         # Get session
         session_data = self.get_session(session_id)
         
-        # Get new question for the session
-        question = self.game_service.get_random_question(difficulty, top_n)
+        # Use provided values OR fall back to stored session values
+        effective_difficulty = difficulty if difficulty is not None else session_data["difficulty"]
+        effective_top_n = top_n if top_n is not None else session_data["top_n"]
         
-        # Update session with new question
+        # Get new question with effective values
+        question = self.game_service.get_random_question(effective_difficulty, effective_top_n)
+        
+        # Update session with new question AND new difficulty/top_n (if provided)
         session_data["current_question_player_id"] = question.player_id
+        session_data["difficulty"] = effective_difficulty    # Update for next time
+        session_data["top_n"] = effective_top_n              # Update for next time
         session_data["last_activity"] = datetime.now().isoformat()
         
         self.storage.update(f"session:{session_id}", session_data)

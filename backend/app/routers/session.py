@@ -16,6 +16,7 @@ from app.models.schemas import (
     SessionStartResponse,
     SessionGuessRequest,
     SessionGuessResponse,
+    SessionNextQuestionRequest,
     SessionNextQuestionResponse,
     SessionEndResponse
 )
@@ -117,18 +118,25 @@ def submit_guess(
 @router.post("/{session_id}/next", response_model=SessionNextQuestionResponse)
 def get_next_question(
     session_id: str,
-    request: SessionStartRequest,
+    request: SessionNextQuestionRequest = SessionNextQuestionRequest(),
     session_service: SessionService = Depends(get_session_service)
 ):
     """
     Get the next question in the session
     
     Call this after a guess to move to the next question.
-    You can optionally change difficulty and top_n for the next question.
+    Difficulty and top_n are OPTIONAL:
+    - If not provided: Uses the values from session start (or last /next call)
+    - If provided: Uses new values and updates session defaults for future questions
+    
+    Examples:
+    1. Keep same difficulty: POST {} or no body
+    2. Change difficulty: POST {"difficulty": "moderate"}
+    3. Change both: POST {"difficulty": "long", "top_n": 500}
     
     Args:
         session_id: Session identifier (UUID format)
-        request: Contains difficulty and top_n (can be same or different from session start)
+        request: Optional difficulty/top_n overrides
         
     Returns:
         New question with current session score
@@ -140,7 +148,11 @@ def get_next_question(
     validate_session_id(session_id)
     
     try:
-        result = session_service.get_next_question(session_id, request.difficulty, request.top_n)
+        result = session_service.get_next_question(
+            session_id, 
+            request.difficulty, 
+            request.top_n
+        )
         return SessionNextQuestionResponse(**result)
     except HTTPException:
         raise
