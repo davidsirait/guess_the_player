@@ -10,6 +10,7 @@ from app.models.schemas import (
     SessionStartResponse,
     SessionGuessRequest,
     SessionGuessResponse,
+    SessionNextQuestionRequest,
     SessionNextQuestionResponse,
     SessionEndResponse
 )
@@ -26,6 +27,7 @@ __all__ = [
     "SessionStartResponse",
     "SessionGuessRequest",
     "SessionGuessResponse",
+    "SessionNextQuestionRequest",
     "SessionNextQuestionResponse",
     "SessionEndResponse"
 ]
