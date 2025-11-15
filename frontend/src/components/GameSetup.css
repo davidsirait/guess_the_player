@@ -1,0 +1,112 @@
+.game-setup {
+  background: white;
+  border-radius: 16px;
+  padding: 2.5rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  max-width: 600px;
+  width: calc(100% - 2rem); /* Leave space on sides */
+  margin: 0 1rem; /* Add margin */
+}
+
+/* Larger screens - make it wider */
+@media (min-width: 1200px) {
+  .game-setup {
+    max-width: 700px;
+  }
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .game-setup {
+    padding: 1.5rem;
+    width: calc(100% - 1rem);
+    margin: 0 0.5rem;
+  }
+}
+
+.game-setup h2 {
+  color: #667eea;
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.setup-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: #333;
+  font-size: 1rem;
+}
+
+.form-group select {
+  padding: 0.75rem;
+  border: 2px solid #e1e8ed;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: white;
+  cursor: pointer;
+  transition: border-color 0.3s ease;
+}
+
+.form-group select:hover {
+  border-color: #667eea;
+}
+
+.form-group select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-group small {
+  color: #999;
+  font-size: 0.875rem;
+}
+
+.setup-form .btn {
+  margin-top: 1rem;
+  width: 100%;
+  padding: 1rem;
+  font-size: 1.1rem;
+}
+
+.game-info {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #667eea;
+}
+
+.game-info h3 {
+  color: #667eea;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+
+.game-info ol {
+  padding-left: 1.5rem;
+}
+
+.game-info li {
+  margin-bottom: 0.5rem;
+  color: #666;
+  line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+  .game-setup {
+    padding: 1.5rem;
+  }
+}
