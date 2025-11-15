@@ -20,8 +20,10 @@ html, body, #root {
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-attachment: fixed; /* Keep gradient fixed */
   min-height: 100vh;
   color: #333;
+  overflow-x: hidden; /* Prevent horizontal scroll */
 }
 
 .app {
@@ -83,12 +85,11 @@ body {
 
 /* Footer */
 .app-footer {
-  background: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.9);
   padding: 1rem;
   text-align: center;
   color: #666;
   font-size: 0.9rem;
-  font-weight: 500;
   width: 100%;
 }
 
@@ -137,6 +138,7 @@ body {
   .app-header {
     flex-direction: column;
     gap: 1rem;
+    padding: 1rem;
   }
 
   .app-header h1 {
@@ -144,6 +146,6 @@ body {
   }
 
   .app-main {
-    padding: 1rem;
+    padding: 1rem 0.5rem;
   }
 }

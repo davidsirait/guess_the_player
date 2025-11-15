@@ -88,10 +88,48 @@ function GameResult({ result, score, totalAttempts, currentDifficulty, currentTo
         </div>
       </div>
 
+      {/* Next question settings */}
+      <div className="next-question-settings">
+        <h3>Next Question Settings</h3>
+        <p className="settings-hint">You can change difficulty for the next question</p>
+        
+        <div className="settings-grid">
+          <div className="setting-group">
+            <label htmlFor="next-difficulty">Career Length:</label>
+            <select
+              id="next-difficulty"
+              value={nextDifficulty}
+              onChange={(e) => setNextDifficulty(e.target.value)}
+              disabled={loading}
+            >
+              <option value="short">Short (2-4 clubs)</option>
+              <option value="moderate">Moderate (5-7 clubs)</option>
+              <option value="long">Long (8+ clubs)</option>
+            </select>
+          </div>
+
+          <div className="setting-group">
+            <label htmlFor="next-topn">Player Pool:</label>
+            <select
+              id="next-topn"
+              value={nextTopN}
+              onChange={(e) => setNextTopN(Number(e.target.value))}
+              disabled={loading}
+            >
+              <option value="50">Top 50 (Easier)</option>
+              <option value="100">Top 100 (Easy)</option>
+              <option value="200">Top 200 (Medium)</option>
+              <option value="500">Top 500 (Hard)</option>
+              <option value="1000">Top 1000 (Very Hard)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
       {/* Action buttons */}
       <div className="result-actions">
         <button
-          onClick={onNextQuestion}
+          onClick={handleNext}
           className="btn btn-primary"
           disabled={loading}
         >

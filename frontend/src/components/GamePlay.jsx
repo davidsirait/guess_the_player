@@ -29,22 +29,24 @@ function GamePlay({ question, onGuess, lastGuessResult, loading, onEndGame }) {
         <h3>Career Path:</h3>
         <div className="clubs-grid">
           {question.clubs.map((club, index) => (
-            <div key={index} className="club-item">
-              <div className="club-logo">
-                <img
-                  src={club.logo}
-                  alt={club.club}
-                  onError={handleImageError}
-                />
-              </div>
-              <div className="club-info">
-                <p className="club-name">{club.club}</p>
-                <p className="club-season">{club.season}</p>
+            <>
+              <div key={index} className="club-item">
+                <div className="club-logo">
+                  <img
+                    src={club.logo}
+                    alt={club.club}
+                    onError={handleImageError}
+                  />
+                </div>
+                <div className="club-info">
+                  <p className="club-name">{club.club}</p>
+                  <p className="club-season">{club.season}</p>
+                </div>
               </div>
               {index < question.clubs.length - 1 && (
-                <div className="arrow">→</div>
+                <div key={`arrow-${index}`} className="arrow">→</div>
               )}
-            </div>
+            </>
           ))}
         </div>
       </div>
