@@ -7,6 +7,7 @@
   width: 90%; /* Use percentage */
   margin: 0 auto; /* Center it */
   text-align: center;
+  margin-top: 0.5rem;
 }
 
 /* Larger screens - make it wider */

@@ -21,13 +21,13 @@ body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   background-attachment: fixed; /* Keep gradient fixed */
-  min-height: 100vh;
+  min-height: 120%;
   color: #333;
   overflow-x: hidden; /* Prevent horizontal scroll */
 }
 
 .app {
-  min-height: 100vh;
+  min-height: 120vh;
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -65,6 +65,7 @@ body {
 /* Main content */
 .app-main {
   display: flex;
+  flex: 1 1 auto; 
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -73,7 +74,7 @@ body {
   padding-left: 1rem;
   padding-right: 1rem;
   width: 100%;
-  min-height: calc(100vh - var(--header-height)); /* prevent main from filling full viewport under header */
+  /* min-height: calc(100vh - var(--header-height));  */
 }
 
 /* Error message */
@@ -151,6 +152,6 @@ body {
   }
 
   .app-main {
-    padding: 15rem 0.5rem;
+    padding: 1rem 0.5rem;
   }
 }

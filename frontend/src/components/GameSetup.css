@@ -7,6 +7,7 @@
   width: 90%; /* Use percentage instead of calc */
   margin: 0 auto; /* Center it */
   margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
 }
 
 /* Larger screens - make it wider */

@@ -169,9 +169,9 @@ function App() {
         )}
       </main>
 
-      {/* <footer className="app-footer">
+      {<footer className="app-footer">
         <p>Powered by Transfermarkt data</p>
-      </footer> */}
+      </footer> }
     </div>
   );
 }
