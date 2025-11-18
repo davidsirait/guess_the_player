@@ -49,6 +49,11 @@ class GameService:
         Raises:
             HTTPException: If difficulty invalid or no questions available
         """
+
+        # load settings 
+        settings = get_settings()
+
+        # Validate difficulty
         if difficulty not in ['short', 'moderate', 'long']:
             raise HTTPException(
                 status_code=400,
@@ -61,6 +66,7 @@ class GameService:
         query = """
             with player_cte AS(
                 SELECT 
+                    player_name,
                     player_id,
                     difficulty,
                     ROW_NUMBER () OVER (ORDER BY market_value_numeric DESC) AS rn,
@@ -72,6 +78,7 @@ class GameService:
                 ORDER BY market_value_numeric DESC
             )
             SELECT 
+                player_name,
                 player_id,
                 difficulty,
                 num_moves,
@@ -100,8 +107,12 @@ class GameService:
                 detail=f"No questions available for top {top_n} players with career length {difficulty}"
             )
         
-        player_id, diff, num_moves, shared_by, clubs_json = result
+        player_name, player_id, diff, num_moves, shared_by, clubs_json = result
         clubs = json.loads(clubs_json) if clubs_json else []
+
+        # only for debugging purpose
+        if settings.environment == "dev":
+            print(f"Selected player for question: {player_name} (ID: {player_id})")
         
         # Process clubs to add fallback images
         processed_clubs = []

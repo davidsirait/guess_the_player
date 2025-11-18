@@ -34,6 +34,9 @@ class Settings(BaseSettings):
     
     # Set limit based on market value for players retrieval
     top_players_limit: int = 100
+
+    # set environment
+    environment: str = "dev"
     
     class Config:
         env_file = ".env"

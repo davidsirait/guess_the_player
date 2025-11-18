@@ -37,7 +37,7 @@ class SessionService:
         session_id = str(uuid.uuid4())
         
         # Get first question
-        question = GameService.get_random_question(difficulty, top_n)
+        question = self.game_service.get_random_question(difficulty, top_n)
         
         # Create session data - STORE difficulty and top_n
         session_data = {
