@@ -42,6 +42,9 @@ body {
   justify-content: space-between;
   align-items: center;
   width: 100%;
+  position:static;
+  height:auto;
+
 }
 
 .app-header h1 {
@@ -61,14 +64,16 @@ body {
 
 /* Main content */
 .app-main {
-  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 2rem 1rem; /* Vertical and horizontal padding */
+  padding-top: calc(var(--header-height) + 1rem); /* header plus small gap */
+  padding-bottom: 2rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
   width: 100%;
-  min-height: calc(100vh - 200px);
+  min-height: calc(100vh - var(--header-height)); /* prevent main from filling full viewport under header */
 }
 
 /* Error message */
