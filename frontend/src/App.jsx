@@ -61,7 +61,12 @@ function App() {
         setGameState('result');
       }
     } catch (err) {
+      if (err.response?.status === 429){
+        const retryAfter = err.response.data.retry_after || 60;
+        setError(`Too many guesses! Please wait ${retryAfter} seconds before trying again.`);
+      } else {
       setError('Failed to submit guess: ' + err.message);
+      }
     } finally {
       setLoading(false);
     }
