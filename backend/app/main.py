@@ -5,7 +5,7 @@ FastAPI Backend for Career Sequence Game
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi import Limiter
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
@@ -16,6 +16,7 @@ import os
 from app.config import get_settings
 from app.routers import game, player, session
 from app.dependencies import get_session_service
+from app.middleware import rate_limit_handler
 
 settings = get_settings()
 
@@ -58,7 +59,7 @@ app = FastAPI(
 
 # Add rate limiter state
 app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_exception_handler(RateLimitExceeded, rate_limit_handler)
 
 # Configure CORS - use parsed origins
 app.add_middleware(
