@@ -6,6 +6,8 @@ from pydantic_settings import BaseSettings
 from functools import lru_cache
 from typing import List
 import json
+import logging
+import sys
 
 
 class Settings(BaseSettings):
@@ -26,7 +28,7 @@ class Settings(BaseSettings):
     player_lookup_threshold: int = 70
     
     # Session settings
-    session_ttl: int = 21600  # 6 hours (increased from 1 hour)
+    session_ttl: int = 21600  # 6 hours
     session_cleanup_interval: int = 300
     
     # Redis url settings
@@ -35,8 +37,11 @@ class Settings(BaseSettings):
     # Set limit based on market value for players retrieval
     top_players_limit: int = 100
 
-    # set environment
+    # Set environment
     environment: str = "dev"
+    
+    # Logging level
+    log_level: str = "INFO"
     
     class Config:
         env_file = ".env"
@@ -57,9 +62,62 @@ class Settings(BaseSettings):
         
         # Fall back to comma-separated
         return [origin.strip() for origin in self.cors_origins.split(",")]
+    
+    def is_production(self) -> bool:
+        """Check if running in production environment"""
+        return self.environment.lower() in ["production", "prod"]
 
 
 @lru_cache()
 def get_settings() -> Settings:
     """Get cached settings instance"""
     return Settings()
+
+
+def setup_logging():
+    """Configure application logging"""
+    settings = get_settings()
+    
+    # Map string level to logging level
+    level_map = {
+        "DEBUG": logging.DEBUG,
+        "INFO": logging.INFO,
+        "WARNING": logging.WARNING,
+        "ERROR": logging.ERROR,
+        "CRITICAL": logging.CRITICAL,
+    }
+    
+    log_level = level_map.get(settings.log_level.upper(), logging.INFO)
+    
+    # Create formatter
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
+    
+    # Configure root logger
+    root_logger = logging.getLogger()
+    root_logger.setLevel(log_level)
+    
+    # Remove existing handlers
+    root_logger.handlers = []
+    
+    # Add console handler
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setFormatter(formatter)
+    root_logger.addHandler(console_handler)
+    
+    # In production, also log to file
+    if settings.is_production():
+        try:
+            file_handler = logging.FileHandler('app.log')
+            file_handler.setFormatter(formatter)
+            root_logger.addHandler(file_handler)
+        except Exception as e:
+            root_logger.warning(f"Could not create log file: {e}")
+    
+    return root_logger
+
+
+# Initialize logging on module import
+logger = setup_logging()
