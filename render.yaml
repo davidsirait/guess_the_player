@@ -14,7 +14,7 @@ services:
       - key: APP_NAME
         value: Guess the Player API
       - key: DATABASE_PATH
-        value: /var/data/transfermarkt.db
+        value: /opt/render/project/src/transfermarkt.db
       - key: ENVIRONMENT
         value: production
       - key: FUZZY_MATCH_THRESHOLD
@@ -27,8 +27,4 @@ services:
         value: INFO
       - key: CORS_ORIGINS
         sync: false  # Set manually in Render dashboard after deploying frontend
-    disk:
-      name: database-disk
-      mountPath: /var/data
-      sizeGB: 1
     healthCheckPath: /health
