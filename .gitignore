@@ -9,3 +9,4 @@ __pycache__/
 *.db
 *.wal
 static/
+.env.production

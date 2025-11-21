@@ -1,0 +1,34 @@
+services:
+  # Backend API Service
+  - type: web
+    name: guess-player-api
+    runtime: python
+    region: oregon  # Choose region closest to your users
+    plan: free
+    buildCommand: |
+      pip install -r requirements.txt && 
+      cd backend && pip install -r requirements.txt &&
+      python create_placeholder.py
+    startCommand: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: APP_NAME
+        value: Guess the Player API
+      - key: DATABASE_PATH
+        value: /var/data/transfermarkt.db
+      - key: ENVIRONMENT
+        value: production
+      - key: FUZZY_MATCH_THRESHOLD
+        value: 80
+      - key: PLAYER_LOOKUP_THRESHOLD
+        value: 70
+      - key: SESSION_TTL
+        value: 21600
+      - key: LOG_LEVEL
+        value: INFO
+      - key: CORS_ORIGINS
+        sync: false  # Set manually in Render dashboard after deploying frontend
+    disk:
+      name: database-disk
+      mountPath: /var/data
+      sizeGB: 1
+    healthCheckPath: /health

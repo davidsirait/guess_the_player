@@ -33,9 +33,6 @@ class Settings(BaseSettings):
     
     # Redis url settings
     redis_url: str = "redis://localhost:6379"
-    
-    # Set limit based on market value for players retrieval
-    top_players_limit: int = 100
 
     # Set environment
     environment: str = "dev"
