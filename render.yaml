@@ -3,7 +3,7 @@ services:
   - type: web
     name: guess-player-api
     runtime: python
-    region: oregon  # Choose region closest to your users
+    region: singapore  # Choose region closest to your users
     plan: free
     buildCommand: |
       pip install -r requirements.txt && 
