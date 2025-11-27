@@ -21,9 +21,7 @@ def get_club_id(url):
     """Extract club ID from club URL"""
     try:
         parts = url.split('/')
-        # find the last part
         id_part = parts[-1]
-        # check if it contains underscore
         if "_" in id_part:
             club_id = id_part.split('_')[0]
             return club_id
@@ -35,6 +33,7 @@ def get_club_id(url):
         return None
     except:
         return None
+
 
 def create_clubs_table(conn):
     """Create clubs table if it doesn't exist"""
@@ -54,7 +53,6 @@ def extract_clubs_from_transfers(conn):
     
     print("\nExtracting clubs from transfer_details...")
     
-    # Get clubs from 'from_club' column
     from_clubs = conn.execute("""
         SELECT DISTINCT 
             from_club as club_name,
@@ -66,7 +64,6 @@ def extract_clubs_from_transfers(conn):
     
     print(f"  Found {len(from_clubs)} clubs in 'from_club' column")
     
-    # Get clubs from 'to_club' column
     to_clubs = conn.execute("""
         SELECT DISTINCT 
             to_club as club_name,
@@ -78,7 +75,6 @@ def extract_clubs_from_transfers(conn):
     
     print(f"  Found {len(to_clubs)} clubs in 'to_club' column")
     
-    # Combine and deduplicate
     import pandas as pd
     all_clubs = pd.concat([from_clubs, to_clubs]).drop_duplicates(subset=['club_name'])
     
@@ -100,7 +96,6 @@ def populate_clubs_table(conn, clubs_df):
         club_id = get_club_id(row['logo_url'])
         
         try:
-            # Check if club already exists
             existing = conn.execute("""
                 SELECT club_id FROM clubs WHERE club_id = ?
             """, [club_id]).fetchone()
@@ -109,7 +104,6 @@ def populate_clubs_table(conn, clubs_df):
                 skipped_count += 1
                 continue
             
-            # Insert new club
             conn.execute("""
                 INSERT INTO clubs (club_id, club_name, logo_url)
                 VALUES (?, ?, ?)
@@ -163,15 +157,13 @@ def show_statistics(conn):
 def main():
     """Main execution"""
     print("="*80)
-    print("STEP 1: EXTRACT AND POPULATE CLUBS TABLE")
+    print("Extracting Clubs and Populating Clubs Table")
     print("="*80)
     
-    # Connect to database
     db_path = 'transfermarkt.db'
     conn = duckdb.connect(db_path)
     print(f"\n Connected to {db_path}")
     
-    # Check if transfer_details table exists
     tables = conn.execute("""
         SELECT table_name FROM information_schema.tables 
         WHERE table_name = 'transfer_details'
@@ -182,10 +174,7 @@ def main():
         print("   Please run the transfer spider first.")
         return
     
-    # Create clubs table
     create_clubs_table(conn)
-    
-    # Extract clubs from transfer_details
     clubs_df = extract_clubs_from_transfers(conn)
     
     if len(clubs_df) == 0:
@@ -193,17 +182,14 @@ def main():
         print("   Make sure you have transfer data with club logo URLs.")
         return
     
-    # Populate clubs table
     populate_clubs_table(conn, clubs_df)
-    
-    # Show results
     show_sample_clubs(conn)
     show_statistics(conn)
     
     conn.close()
     
     print("\n" + "="*80)
-    print("STEP 1 COMPLETED!")
+    print("Extraction and population complete!")
     print("="*80)
 
 
