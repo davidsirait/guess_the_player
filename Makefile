@@ -41,22 +41,22 @@ help:
 # ============================================================================
 
 install: install-scraper install-backend install-frontend
-	@echo "✓ All dependencies installed"
+	@echo " All dependencies installed"
 
 install-scraper:
 	@echo "Installing scraper dependencies..."
 	pip install -r requirements.txt
-	@echo "✓ Scraper dependencies installed"
+	@echo " Scraper dependencies installed"
 
 install-backend:
 	@echo "Installing backend dependencies..."
 	cd backend && pip install -r requirements.txt
-	@echo "✓ Backend dependencies installed"
+	@echo " Backend dependencies installed"
 
 install-frontend:
 	@echo "Installing frontend dependencies..."
 	cd frontend && npm install
-	@echo "✓ Frontend dependencies installed"
+	@echo " Frontend dependencies installed"
 
 # ============================================================================
 # DATA PIPELINE - SCRAPING
@@ -67,14 +67,14 @@ scrape-players:
 	@echo "Running Player Spider..."
 	@echo "========================================"
 	scrapy crawl player_spider
-	@echo "✓ Player data saved to output/players.json"
+	@echo " Player data saved to output/players.json"
 
 scrape-transfers:
 	@echo "========================================"
 	@echo "Running Transfer Spider..."
 	@echo "========================================"
 	scrapy crawl transfer_spider -a player_file=output/players.json
-	@echo "✓ Transfer data saved to output/transfers.json"
+	@echo " Transfer data saved to output/transfers.json"
 
 scrape-all: scrape-players scrape-transfers
 	@echo "========================================"
@@ -90,14 +90,14 @@ extract-clubs:
 	@echo "Extracting club data..."
 	@echo "========================================"
 	python scraper/data_preparation/extract_clubs.py
-	@echo "✓ Club data extracted"
+	@echo " Club data extracted"
 
 create-sequences:
 	@echo "========================================"
 	@echo "Creating player sequences..."
 	@echo "========================================"
 	python scraper/data_preparation/create_sequence.py
-	@echo "✓ Player sequences created"
+	@echo " Player sequences created"
 
 prepare-data: extract-clubs create-sequences
 	@echo "========================================"
