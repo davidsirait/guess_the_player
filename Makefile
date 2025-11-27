@@ -132,6 +132,9 @@ dev:
 	@echo "  Terminal 1: make backend"
 	@echo "  Terminal 2: make frontend"
 
+	make backend &
+	make frontend &
+
 # ============================================================================
 # UTILITIES
 # ============================================================================
