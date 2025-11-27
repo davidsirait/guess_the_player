@@ -1,7 +1,7 @@
 import duckdb
 import json
 from itemadapter import ItemAdapter
-from transfermarkt_scraper.items import PlayerItem, TransferItem
+from scraper.items import PlayerItem, TransferItem
 
 def parse_market_value(value_str):
     """Convert market value string to float (in millions)"""
@@ -75,7 +75,7 @@ class DuckDBPipeline:
         """)
         
         # Optional: Normalized transfers table for easier querying
-        # firt create a sequence for auto-incrementing IDs
+        # first create a sequence for auto-incrementing IDs
         self.conn.execute("""
             CREATE SEQUENCE IF NOT EXISTS transfer_details_seq START 1
         """)

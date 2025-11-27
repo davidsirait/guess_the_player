@@ -1,7 +1,7 @@
 import json
 import os
 from itemadapter import ItemAdapter
-from transfermarkt_scraper.items import PlayerItem, TransferItem
+from scraper.items import PlayerItem, TransferItem
 
 
 class JsonWriterPipeline:

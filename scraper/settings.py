@@ -1,7 +1,7 @@
-BOT_NAME = 'transfermarkt_scraper'
+BOT_NAME = 'scraper'
 
-SPIDER_MODULES = ['transfermarkt_scraper.spiders']
-NEWSPIDER_MODULE = 'transfermarkt_scraper.spiders'
+SPIDER_MODULES = ['scraper.spiders']
+NEWSPIDER_MODULE = 'scraper.spiders'
 
 # Crawl responsibly by identifying yourself
 USER_AGENT = 'guess-the-player/1.0 (https://github.com/davidsirait/guess-the-player)'
@@ -30,8 +30,8 @@ RETRY_HTTP_CODES = [500, 502, 503, 504, 408, 429]
 
 # Configure item pipelines
 ITEM_PIPELINES = {
-    'transfermarkt_scraper.json_pipeline.JsonWriterPipeline': 300,
-    'transfermarkt_scraper.db_pipeline.DuckDBPipeline': 400,
+    'scraper.json_pipeline.JsonWriterPipeline': 300,
+    'scraper.db_pipeline.DuckDBPipeline': 400,
 }
 
 # Set log level

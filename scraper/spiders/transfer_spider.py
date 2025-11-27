@@ -1,6 +1,6 @@
 import scrapy
 import json
-from transfermarkt_scraper.items import TransferItem
+from scraper.items import TransferItem
 
 
 def sanitize_club_image_url(url):
@@ -8,6 +8,7 @@ def sanitize_club_image_url(url):
     if url:
         return url.replace("homepageWappen70x70", "head")
     return url
+
 
 class TransferSpider(scrapy.Spider):
     name = 'transfer_spider'
@@ -23,13 +24,8 @@ class TransferSpider(scrapy.Spider):
         spider.logger.info(f'Using database: {spider.db}')
         return spider
     
-    # def __init__(self, *args, **kwargs):
-    #     super(TransferSpider, self).__init__(*args, **kwargs)
-    #     self.player_file = kwargs.get('player_file', 'output/players.json')
-    #     self.db = kwargs.get('db', None)
-    
     def start_requests(self):
-        """Read player IDs from the player spider output and generate API requests (deprecated, kept for backward compatibility)"""
+        """Read player IDs from the player spider output and generate API requests"""
         try:
             if self.db:
                 import duckdb
@@ -51,7 +47,6 @@ class TransferSpider(scrapy.Spider):
                     player_name = player.get('player_name', 'Unknown')
                 
                 if player_id:
-                    # Construct the API URL
                     api_url = f'https://www.transfermarkt.co.uk/ceapi/transferHistory/list/{player_id}'
                     
                     yield scrapy.Request(
@@ -72,8 +67,6 @@ class TransferSpider(scrapy.Spider):
     
     async def start(self):
         """Generate initial requests (new async method for Scrapy 2.13+)"""
-        # Use the parent class implementation which will call start_requests()
-        # This provides backward compatibility
         async for x in super().start():
             yield x
     
@@ -82,17 +75,14 @@ class TransferSpider(scrapy.Spider):
         player_id = response.meta['player_id']
         player_name = response.meta['player_name']
 
-        # sanitize player name
         player_name = player_name.replace('-', ' ').title()
         
         try:
-            # Parse JSON response
             data = json.loads(response.text)
             transfer_data_list = []
             
-            # parse the transfer response data 
             for transfer in data.get('transfers', []):
-                transfer_data  = {}
+                transfer_data = {}
                 transfer_data['season'] = transfer.get('season', 'Unknown')
                 transfer_data['fee'] = transfer.get('fee', 'Unknown')
                 transfer_data['from_club'] = transfer['from'].get('clubName', 'Unknown')
@@ -101,7 +91,6 @@ class TransferSpider(scrapy.Spider):
                 transfer_data['from_club_image_url'] = sanitize_club_image_url(transfer['from'].get('clubEmblemMobile', ''))
                 transfer_data['to_club_image_url'] = sanitize_club_image_url(transfer['to'].get('clubEmblemMobile', ''))
 
-                # append as list of transfers
                 transfer_data_list.append(transfer_data)
 
             yield TransferItem(

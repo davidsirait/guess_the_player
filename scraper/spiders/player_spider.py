@@ -1,6 +1,6 @@
 import scrapy
 import re
-from transfermarkt_scraper.items import PlayerItem
+from scraper.items import PlayerItem
 
 def sanitize_string(input_string):
     """Sanitize strings by replacing hyphens with spaces and title-casing"""
@@ -18,38 +18,24 @@ class PlayerSpider(scrapy.Spider):
     start_urls_data = [
         # England
         ('England', 'Premier League', 'https://www.transfermarkt.co.uk/premier-league/startseite/wettbewerb/GB1'),
-        # ('England', 'Championship', 'https://www.transfermarkt.co.uk/championship/startseite/wettbewerb/GB2'),
-        # ('England', 'League One', 'https://www.transfermarkt.co.uk/league-one/startseite/wettbewerb/GB3'),
         
-        # # Spain
+        # Spain
         ('Spain', 'La Liga', 'https://www.transfermarkt.co.uk/laliga/startseite/wettbewerb/ES1'),
-        # ('Spain', 'Segunda Division', 'https://www.transfermarkt.co.uk/segunda-division/startseite/wettbewerb/ES2'),
-        # ('Spain', 'Primera RFEF', 'https://www.transfermarkt.co.uk/primera-federacion/startseite/wettbewerb/ES3A'),
         
-        # # Germany
+        # Germany
         ('Germany', 'Bundesliga', 'https://www.transfermarkt.co.uk/bundesliga/startseite/wettbewerb/L1'),
-        # ('Germany', '2. Bundesliga', 'https://www.transfermarkt.co.uk/2-bundesliga/startseite/wettbewerb/L2'),
-        # ('Germany', '3. Liga', 'https://www.transfermarkt.co.uk/3-liga/startseite/wettbewerb/L3'),
         
-        # # Italy
+        # Italy
         ('Italy', 'Serie A', 'https://www.transfermarkt.co.uk/serie-a/startseite/wettbewerb/IT1'),
-        # ('Italy', 'Serie B', 'https://www.transfermarkt.co.uk/serie-b/startseite/wettbewerb/IT2'),
-        # ('Italy', 'Serie C', 'https://www.transfermarkt.co.uk/serie-c/startseite/wettbewerb/IT3A'),
         
-        # # France
+        # France
         ('France', 'Ligue 1', 'https://www.transfermarkt.co.uk/ligue-1/startseite/wettbewerb/FR1'),
-        # ('France', 'Ligue 2', 'https://www.transfermarkt.co.uk/ligue-2/startseite/wettbewerb/FR2'),
-        # ('France', 'National', 'https://www.transfermarkt.co.uk/national/startseite/wettbewerb/FR3A'),
         
-        # # Portugal
+        # Portugal
         ('Portugal', 'Primeira Liga', 'https://www.transfermarkt.co.uk/primeira-liga/startseite/wettbewerb/PO1'),
-        # ('Portugal', 'Segunda Liga', 'https://www.transfermarkt.co.uk/liga-portugal-2/startseite/wettbewerb/PO2'),
-        # ('Portugal', 'Liga 3', 'https://www.transfermarkt.co.uk/liga-3/startseite/wettbewerb/PO3'),
 
         # Netherlands
         ('Netherlands', 'Eredivisie', 'https://www.transfermarkt.co.uk/eredivisie/startseite/wettbewerb/NL1'),
-        # ('Netherlands', 'Eerste Divisie', 'https://www.transfermarkt.co.uk/eerste-divisie/startseite/wettbewerb/NL2'),
-        # ('Netherlands', 'Tweede Divisie', 'https://www.transfermarkt.co.uk/tweede-divisie/startseite/wettbewerb/NL3'),
 
         # Saudi League
         ('Saudi Arabia', 'Saudi Pro League', 'https://www.transfermarkt.co.uk/saudi-professional-league/startseite/wettbewerb/SA1'),
@@ -69,8 +55,6 @@ class PlayerSpider(scrapy.Spider):
     
     async def start(self):
         """Generate initial requests for each league (new async method for Scrapy 2.13+)"""
-        # Use the parent class implementation which will call start_requests()
-        # This provides backward compatibility
         async for x in super().start():
             yield x
     
@@ -79,19 +63,13 @@ class PlayerSpider(scrapy.Spider):
         league = response.meta['league']
         division = response.meta['division']
         
-        # Extract all club links from the league page
-        # Clubs are typically in tables with links to /club-name/startseite/verein/CLUB_ID
         club_links = response.css('table.items a[href*="/startseite/verein/"]::attr(href)').getall()
-        
-        # Get unique club links
         club_links = list(set(club_links))
         
         self.logger.info(f'Found {len(club_links)} clubs in {league} - {division}')
         
         for club_link in club_links:
             club_url = response.urljoin(club_link)
-            
-            # Extract club name from URL
             club_name = club_link.split('/')[1] if '/' in club_link else 'Unknown'
             
             yield scrapy.Request(
@@ -110,25 +88,16 @@ class PlayerSpider(scrapy.Spider):
         division = response.meta['division']
         club = response.meta['club']
         
-        # Extract player links - pattern: /player-name/profil/spieler/PLAYER_ID
         player_links = response.css('table.items a[href*="/profil/spieler/"]::attr(href)').getall()
-
-        # Extract player image urls
         player_urls = response.css('table.items img[data-src*="portrait/medium"]::attr(data-src)').getall()
-
-        # Extract player current market values
         market_values = response.css('table.items a[href*="/marktwertverlauf/spieler/"]::text').getall()
 
-        # Combine player links and image urls as list of tuples
         player_lists = list(zip(player_links, player_urls, market_values))
-        
-        # Get unique player lists
         player_lists = list(set(player_lists))
         
         self.logger.info(f'Found {len(player_lists)} players in {club}')
         
         for player_list in player_lists:
-            # Extract player ID from URL using regex
             match = re.search(r'/spieler/(\d+)', player_list[0])
             
             if match:
@@ -137,10 +106,7 @@ class PlayerSpider(scrapy.Spider):
                 player_img_url = player_list[1] if '/' in player_list[1] else ''
                 market_value = player_list[2].strip() if len(player_list) > 2 else ''
 
-                # replace size in image url from medium to header
                 player_img_url = re.sub(r'portrait/medium', 'portrait/header', player_img_url)
-                
-                # Extract player name from URL (between first two slashes)
                 player_name = player_list[0].split('/')[1] if '/' in player_list[0] else 'Unknown'
                 
                 yield PlayerItem(
